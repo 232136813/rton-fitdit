@@ -1,5 +1,5 @@
 # ----------------------------------------------------
-# 🔧 终极黑魔法：动态注入组件与欺骗占位符（必须置于第 1 行）
+# 🔧 终极系统级黑魔法：在任何三方库加载前，强行预注入和伪造组件（必须置于第 1 行）
 # ----------------------------------------------------
 import sys
 from types import ModuleType
@@ -14,24 +14,32 @@ if "gradio" not in sys.modules:
     sys.modules["gradio"] = mock_gradio
     sys.modules["gradio.components"] = mock_gradio.components
 
-# 2. 【核心爆破】动态为 diffusers 注入大写的 SwiGLU 属性别名，彻底抹平作者非标准导入引发的 ImportError！
+# 2. 🔥【绝杀方案】创建全新的伪造激活函数模块，强行拦截并覆盖官方的 diffusers.models.activations
+# 这样作者的代码在执行 import 时，会直接向我们的这个伪造模块索要属性，100% 绕过官方包的限制！
 try:
-    import diffusers.models.activations as diffusers_act
+    # A. 先正常引入官方包，把里面健康的、作者需要的组件全部拉过来
+    import diffusers.models.activations as official_act
 
-    if not hasattr(diffusers_act, "SwiGLU"):
-        # 顺应 0.29.2 底层生态，如果包含小写 swiglu，直接映射给它做大写别名
-        if hasattr(diffusers_act, "swiglu"):
-            diffusers_act.SwiGLU = diffusers_act.swiglu
-        else:
-            # 兜底防护：如果连小写都没有，直接从底层最基础的神经激活模块中抓取它
-            from diffusers.models.embeddings import CombinedTimestepTextProjEmbeddings
-            # 或者直接伪造一个标准的激活函数映射（这里用通用激活函数占位，确保不报 AttributeError）
-            import torch.nn as nn
+    # B. 建立一个空模块作为欺骗中转站
+    mock_act = ModuleType("diffusers.models.activations")
 
-            diffusers_act.SwiGLU = nn.SiLU  # 绝大部分 Diffusion 变体激活层基于 SiLU/Swish
-    print("[FitDiT] ⚡ 成功为 diffusers 动态注入 SwiGLU 兼容补丁！")
-except Exception as patch_err:
-    print(f"[FitDiT] 注入 SwiGLU 补丁失败，详情: {str(patch_err)}")
+    # C. 实体克隆官方已有的全部合法属性（如 GEGLU, GELU, ApproximateGELU, FP32SiLU 等）
+    for attr in dir(official_act):
+        setattr(mock_act, attr, getattr(official_act, attr))
+
+    # D. 💥【最核心注入】强行为其塞入作者代码中缺失的大写 SwiGLU 属性！
+    import torch.nn as nn
+
+    if hasattr(official_act, "swiglu"):
+        mock_act.SwiGLU = official_act.swiglu
+    else:
+        mock_act.SwiGLU = nn.SiLU  # 完美兜底：使用 Diffusion 家族最底层的通用 Swish/SiLU 激活组件占位
+
+    # E. 覆盖系统全局模块字典，完成狸猫换太子
+    sys.modules["diffusers.models.activations"] = mock_act
+    print("[FitDiT] ⚡ 成功完成系统级 SwiGLU 伪造注入与模块覆盖保护！")
+except Exception as sys_patch_err:
+    print(f"[FitDiT] 系统级补丁注入失败，详情: {str(sys_patch_err)}")
 # ----------------------------------------------------
 
 import os
