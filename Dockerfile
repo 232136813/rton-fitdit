@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
-# ⚡【彻底化解冲突】移除了 gradio 字段，让编译一路畅通执行到底！
+# ⚡【最核心对齐】必须锁死 huggingface_hub 和 diffusers 的版本号上限，绝对不给它们自动升级并报错的机会！
 RUN pip install --no-cache-dir \
     "runpod>=1.6.0" \
     "einops>=0.7.0" \

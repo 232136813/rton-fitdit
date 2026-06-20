@@ -1,12 +1,11 @@
 # ----------------------------------------------------
-# 🔧 终极黑魔法：在系统环境没有安装时，动态伪造 gradio 运行时依赖模块
+# 🔧 动态伪造 gradio 运行时依赖模块，防止脚本导入崩溃
 # ----------------------------------------------------
 import sys
 from types import ModuleType
 
 if "gradio" not in sys.modules:
     mock_gradio = ModuleType("gradio")
-    # 伪造 gradio_sd3.py 脚本中可能用到的核心组建与装饰器
     mock_gradio.components = ModuleType("components")
     mock_gradio.Interface = lambda *args, **kwargs: None
     mock_gradio.Blocks = lambda *args, **kwargs: None
