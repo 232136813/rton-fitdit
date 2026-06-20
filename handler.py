@@ -19,6 +19,7 @@ try:
     print("[FitDiT] 🎉 成功穿透到网盘目录，本地导入 StableDiffusion3TryOnPipeline 类！")
 except Exception as import_err:
     print(f"[FitDiT] ❌ 致命错误！在网盘中引入源码脚本失败，详情: {str(import_err)}")
+    print(f"提示：请确保您的云盘根目录下的 FitDiT 文件夹内包含 gradio_sd3.py 和 src 文件夹")
     StableDiffusion3TryOnPipeline = None
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
