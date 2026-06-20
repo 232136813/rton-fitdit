@@ -9,7 +9,7 @@ from io import BytesIO
 # ----------------------------------------------------
 # 1. 动态注入模型源码路径与全局初始化
 # ----------------------------------------------------
-model_dir = "/models/FitDiT"
+model_dir = "/runpod-volume/FitDiT"
 
 # 确保 diffusers 在加载 trust_remote_code 时能顺利在模型根目录下找到与其配套的本地 python 模块
 if os.path.exists(model_dir) and model_dir not in sys.path:
