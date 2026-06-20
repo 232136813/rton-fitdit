@@ -1,33 +1,29 @@
-# 使用官方 PyTorch 2.3.0 + CUDA 12.1 的稳定镜像
-FROM pytorch/pytorch:2.3.0-cuda12.1-cudnn8-runtime
+# 选用兼容 RTX 4090 / A100 等高端算力架构的 CUDA 12 生产级 PyTorch 基础镜像
+FROM pytorch/pytorch:2.1.2-cuda12.1-cudnn8-runtime
 
+# 设置容器内无交互前端，防止阻塞构建
 ENV DEBIAN_FRONTEND=noninteractive
-WORKDIR /app
 
-# 安装必要的系统底层依赖
-RUN apt-get update && apt-get install -y \
+# 安装核心系统级图像解码扩展包
+RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     git-lfs \
     libgl1-mesa-glx \
     libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
-# 启动 Git LFS
-RUN git lfs install
+# 确立容器内的工作主目录
+WORKDIR /app
 
-# 【重要优化】将大模型权重固化在镜像内，彻底消灭 Serverless 扩容时的冷启动下载耗时
-RUN mkdir -p /models/FitDiT && \
-    git clone https://huggingface.co/BoyuanJiang/FitDiT /models/FitDiT
-
-# 复制并按照精准版本安装 Python 库
-COPY requirements.txt .
+# 预先复制依赖，利用 Docker 层缓存机制加速后续构建
+COPY requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-# 将 RunPod 推理处理核心移入容器
-COPY handler.py .
+# 预建模型挂载占位点，保证后续 RunPod 云盘直接对接到此处
+RUN mkdir -p /models
 
-# 配置环境变量
-ENV PYTHONPATH="/app:${PYTHONPATH}"
+# 将编写完成的业务处理逻辑代码复制到容器中
+COPY handler.py /app/handler.py
 
-# 绑定 RunPod 启动命令
-CMD [ "python", "-u", "handler.py" ]
+# 设置启动命令，RunPod Serverless 会在拉取容器后自动执行此脚本监听外部请求
+CMD [ "python", "-u", "/app/handler.py" ]

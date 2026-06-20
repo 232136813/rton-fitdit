@@ -1,32 +1,41 @@
 import os
+import sys
 import torch
 import runpod
 import base64
 from PIL import Image
 from io import BytesIO
-# 修复：移除导致 ImportError 的旧版静态导入，改为官方推荐的动态加载器入口
-from diffusers import DiffusionPipeline 
+
+# ----------------------------------------------------
+# 0. 动态注入模型源码路径
+# ----------------------------------------------------
+# 确保 diffusers 在加载 trust_remote_code 时能顺利在模型根目录下找到与其配套的本地 python 模块
+model_dir = "/models/FitDiT"
+if os.path.exists(model_dir) and model_dir not in sys.path:
+    sys.path.insert(0, model_dir)
+
+from diffusers import DiffusionPipeline
 
 # ----------------------------------------------------
 # 1. 容器全局初始化 (单例模式防冷启动耗时)
 # ----------------------------------------------------
 device = "cuda" if torch.cuda.is_available() else "cpu"
-model_dir = "/models/FitDiT"
 
-print(f"[FitDiT] 开始在设备 {device} 上加载试衣管线...")
+print(f"[FitDiT] 正在初始化物理设备 {device}，尝试从目标路径 [{model_dir}] 唤醒试衣管线...")
 
 try:
-    # 修复核心：使用 DiffusionPipeline 并配合 trust_remote_code=True
-    # 让 diffusers 自动识别模型路径下 model_index.json 中的 "StableDiffusion3TryOnPipeline"
+    # 启用 trust_remote_code 自动调用本地权重目录下的自定义类与代码
     pipeline = DiffusionPipeline.from_pretrained(
         model_dir,
-        torch_dtype=torch.float16,
+        torch_dtype=torch.float16 if device == "cuda" else torch.float32,
         trust_remote_code=True
     )
-    pipeline.to(device)
-    print("[FitDiT] 试衣模型加载完成，Serverless 接收端已就绪。")
+    if device == "cuda":
+        pipeline.to(device)
+    print("[FitDiT] 🎉 试衣模型与自适应管线加载成功，Serverless 算力单元已就绪！")
 except Exception as init_err:
-    print(f"[FitDiT] 致命错误！未能成功完成管线初始化: {str(init_err)}")
+    print(f"[FitDiT] ❌ 致命错误！未能在初始化阶段成功加载管线: {str(init_err)}")
+    print(f"[FitDiT] 提示：请核对 RunPod 云网盘是否挂载正确，且 /models/FitDiT 下是否存在 model_index.json 及其关联脚本。")
     pipeline = None
 
 
@@ -56,7 +65,7 @@ def handler(job):
     try:
         # 拦截模型未初始化成功的边界情况
         if pipeline is None:
-            return {"status": "failed", "error": "模型管线在容器初始化阶段未能成功加载，请检查挂载路径与权重文件结构。"}
+            return {"status": "failed", "error": "模型管线在容器初始化阶段加载失败，请检查挂载路径与权重文件结构。"}
 
         # 解析请求包
         job_input = job.get('input', {})
@@ -71,13 +80,11 @@ def handler(job):
 
         # 拦截无效输入
         if not model_b64 or not garment_b64:
-            return {"status": "failed", "error": "必须提供参数: model_image 且 garment_image"}
+            return {"status": "failed", "error": "必须提供有效参数: model_image 且 garment_image"}
 
         # 恢复图片对象
         model_image = decode_base64_image(model_b64)
         garment_image = decode_base64_image(garment_b64)
-
-        # 记录模特原始尺寸，方便最终将结果图还原输出
         original_size = model_image.size
 
         # 处理遮罩 (Mask)
@@ -87,7 +94,7 @@ def handler(job):
             # 如果未传入 Mask，默认生成全白遮罩让模型自行全画幅泛化
             mask_image = Image.new("RGB", original_size, (255, 255, 255))
 
-        # 核心：FitDiT 最佳性能分辨率是 768x1024
+        # FitDiT 最佳性能分辨率是 768x1024
         target_size = (768, 1024)
         model_img_resized = model_image.resize(target_size)
         garment_img_resized = garment_image.resize(target_size)
@@ -105,8 +112,7 @@ def handler(job):
             )
             # 获取模型输出图
             generated_img = output.images[0]
-
-            # 将生成的图片无损重置回模特初始传入的比例与尺寸
+            # 无损重置回模特初始传入的比例与尺寸
             final_image = generated_img.resize(original_size)
 
         # 编码并组装返回结构
@@ -119,7 +125,7 @@ def handler(job):
     except Exception as e:
         return {
             "status": "failed",
-            "error": f"推理服务异常终止: {str(e)}"
+            "error": f"推理服务内部异常终止: {str(e)}"
         }
 
 
