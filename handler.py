@@ -6,24 +6,29 @@ import base64
 from PIL import Image
 from io import BytesIO
 
-# 权重固定在 RunPod 云盘强制挂载点
+# ----------------------------------------------------
+# 1. 精准路径定位：模型和代码都在网盘的同一目录下
+# ----------------------------------------------------
 model_dir = "/runpod-volume/FitDiT"
 
-# 直接从当前运行目录本地安全导入刚刚下载好的自定义类
+# 核心：必须把这个目录塞进 sys.path，否则 Python 在 /app 下找不到同在网盘里的 gradio_sd3.py
+if os.path.exists(model_dir) and model_dir not in sys.path:
+    sys.path.insert(0, model_dir)
+
 try:
     from gradio_sd3 import StableDiffusion3TryOnPipeline
 
-    print("[FitDiT] 🎉 成功从容器运行目录中本地导入 StableDiffusion3TryOnPipeline 自定义类！")
+    print("[FitDiT] 🎉 成功从网盘目录中本地导入 StableDiffusion3TryOnPipeline 类！")
 except Exception as import_err:
     print(f"[FitDiT] ❌ 致命错误！引入源码脚本失败，详情: {str(import_err)}")
     StableDiffusion3TryOnPipeline = None
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
-print(f"[FitDiT] 正在初始化物理设备 {device}，开始读取云盘大权重...")
+print(f"[FitDiT] 正在初始化物理设备 {device}，开始读取网盘大权重...")
 
 try:
     if StableDiffusion3TryOnPipeline is not None:
-        # 使用本地健康的自定义类，精准加载云盘中的大模型参数
+        # 传入 model_dir，让它在原地读取 model_index.json 和各组件权重
         pipeline = StableDiffusion3TryOnPipeline.from_pretrained(
             model_dir,
             torch_dtype=torch.float16 if device == "cuda" else torch.float32
@@ -100,9 +105,9 @@ def handler(job):
             )
 
             if hasattr(output, "images") and len(output.images) > 0:
-                generated_img = output.images[0]
+                generated_img = output.images
             elif isinstance(output, (list, tuple)) and len(output) > 0:
-                generated_img = output[0]
+                generated_img = output
             else:
                 generated_img = output
 

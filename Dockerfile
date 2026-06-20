@@ -11,20 +11,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
-# 1. 复制并安装您锁定的依赖包
+# 1. 复制并安装完全体依赖
 COPY requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-# 2. ⚡【终极修复】移除了拼接中的隐形空格，精准拉取官方开源算法脚本与模块
-RUN git clone --depth 1 https://github.com/BoyuanJiang/FitDiT.git /tmp/fitdit_src && \
-    cp /tmp/fitdit_src/gradio_sd3.py /app/gradio_sd3.py && \
-    cp -r /tmp/fitdit_src/src /app/src && \
-    rm -rf /tmp/fitdit_src
-
-# 创建云盘专属固定挂载点
-RUN mkdir -p /runpod-volume
-
-# 3. 复制您项目本地编写的 handler.py 覆盖进去
-COPY handler.py /app/handler.py
+# 2. 软链接网盘中的 handler.py 到本地工作目录
+# 这样容器启动运行 python /app/handler.py 时，能直接执行网盘里的最新监听代码
+RUN mkdir -p /runpod-volume && \
+    ln -s /runpod-volume/FitDiT/handler.py /app/handler.py
 
 CMD [ "python", "-u", "/app/handler.py" ]
