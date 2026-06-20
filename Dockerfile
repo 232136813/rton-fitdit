@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
-# ⚡【最核心对齐】必须锁死 huggingface_hub 和 diffusers 的版本号上限，绝对不给它们自动升级并报错的机会！
+# ⚡【全包闭环】补充了 onnxruntime-gpu 及其配套姿态识别模型所缺的全部数值计算库（如 scipy）
 RUN pip install --no-cache-dir \
     "runpod>=1.6.0" \
     "einops>=0.7.0" \
@@ -28,7 +28,9 @@ RUN pip install --no-cache-dir \
     "safetensors>=0.4.0" \
     "Pillow>=10.3.0" \
     "sentencepiece" \
-    "protobuf"
+    "protobuf" \
+    "onnxruntime-gpu" \
+    "scipy"
 
 # 实体复制你的 handler.py
 COPY handler.py /app/handler.py
