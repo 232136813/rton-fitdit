@@ -20,4 +20,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 RUN mkdir -p /runpod-volume && \
     ln -s /runpod-volume/FitDiT/handler.py /app/handler.py
 
+
 CMD [ "python", "-u", "/app/handler.py" ]
