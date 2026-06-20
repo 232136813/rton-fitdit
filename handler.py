@@ -7,32 +7,51 @@ from PIL import Image
 from io import BytesIO
 
 # ----------------------------------------------------
-# 1. 动态注入模型源码路径与全局初始化
+# 1. 强行注入云盘路径并手动引入自定义管线类 (最稳妥解法)
 # ----------------------------------------------------
 model_dir = "/runpod-volume/FitDiT"
 
-# 确保 diffusers 在加载 trust_remote_code 时能顺利在模型根目录下找到与其配套的本地 python 模块
-if os.path.exists(model_dir) and model_dir not in sys.path:
-    sys.path.insert(0, model_dir)
+if os.path.exists(model_dir):
+    if model_dir not in sys.path:
+        sys.path.insert(0, model_dir)
+else:
+    print(f"[FitDiT] 警告：在 /runpod-volume/FitDiT 路径下未检测到云盘挂载！")
 
-from diffusers import DiffusionPipeline
+# 核心突破：绕过 diffusers 官方无法识别的 Bug，直接从云盘内的脚本文件里把类抢先 import 进来！
+try:
+    # 之前我们通过 ls -la 看到云盘里存在 gradio_sd3.py
+    from gradio_sd3 import StableDiffusion3TryOnPipeline
+
+    print("[FitDiT] 成功从本地脚本 gradio_sd3.py 中导入 StableDiffusion3TryOnPipeline 类。")
+except Exception as import_err:
+    print(f"[FitDiT] 引入自定义脚本失败，将尝试默认加载。详情: {str(import_err)}")
+    StableDiffusion3TryOnPipeline = None
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
-print(f"[FitDiT] 正在初始化物理设备 {device}，尝试从目标路径 [{model_dir}] 加载试衣管线...")
+print(f"[FitDiT] 正在初始化物理设备 {device}，开始加载试衣管线...")
 
 try:
-    # 完美适配固定版本生态，开启 trust_remote_code 自动调用本地权重目录下的自定义类
-    pipeline = DiffusionPipeline.from_pretrained(
-        model_dir,
-        torch_dtype=torch.float16 if device == "cuda" else torch.float32,
-        trust_remote_code=True
-    )
+    if StableDiffusion3TryOnPipeline is not None:
+        # 1. 如果手动引入类成功，直接显式调用它的 from_pretrained（最为精准安全）
+        pipeline = StableDiffusion3TryOnPipeline.from_pretrained(
+            model_dir,
+            torch_dtype=torch.float16 if device == "cuda" else torch.float32
+        )
+    else:
+        # 2. 备用兜底方案
+        from diffusers import DiffusionPipeline
+
+        pipeline = DiffusionPipeline.from_pretrained(
+            model_dir,
+            torch_dtype=torch.float16 if device == "cuda" else torch.float32,
+            trust_remote_code=True
+        )
+
     if device == "cuda":
         pipeline.to(device)
     print("[FitDiT] 🎉 试衣模型与自适应管线加载成功，Serverless 算力单元已就绪！")
 except Exception as init_err:
     print(f"[FitDiT] ❌ 致命错误！未能在初始化阶段成功加载管线: {str(init_err)}")
-    print(f"[FitDiT] 提示：请核对 RunPod 云网盘是否挂载正确，且 /models/FitDiT 下是否存在 model_index.json 及其关联脚本。")
     pipeline = None
 
 
@@ -60,9 +79,8 @@ def encode_image_to_base64(image):
 # ----------------------------------------------------
 def handler(job):
     try:
-        # 拦截模型未初始化成功的边界情况
         if pipeline is None:
-            return {"status": "failed", "error": "模型管线在容器初始化阶段加载失败，请检查挂载路径与权重文件结构。"}
+            return {"status": "failed", "error": "模型管线在容器初始化阶段加载失败，请检查 /runpod-volume 挂载目录结构。"}
 
         # 解析请求包
         job_input = job.get('input', {})
@@ -75,11 +93,10 @@ def handler(job):
         steps = int(job_input.get('steps', 30))
         guidance_scale = float(job_input.get('guidance_scale', 3.5))
 
-        # 拦截无效输入
         if not model_b64 or not garment_b64:
             return {"status": "failed", "error": "必须提供有效参数: model_image 且 garment_image"}
 
-        # 恢复图片对象并记录模特原始尺寸，方便最终将结果图还原输出
+        # 恢复图片对象并记录模特原始尺寸
         model_image = decode_base64_image(model_b64)
         garment_image = decode_base64_image(garment_b64)
         original_size = model_image.size
@@ -88,10 +105,9 @@ def handler(job):
         if mask_b64:
             mask_image = decode_base64_image(mask_b64)
         else:
-            # 如果未传入 Mask，默认生成全白遮罩让模型自行全画幅泛化
             mask_image = Image.new("RGB", original_size, (255, 255, 255))
 
-        # 核心：FitDiT 最佳性能分辨率是 768x1024
+        # 转换至 FitDiT 最佳性能分辨率 768x1024
         target_size = (768, 1024)
         model_img_resized = model_image.resize(target_size)
         garment_img_resized = garment_image.resize(target_size)
@@ -108,10 +124,10 @@ def handler(job):
                 guidance_scale=guidance_scale
             )
 
-            # 鲁棒性提取：完美兼容对象返回或列表返回，防止在不同 diffusers 版本间切换时崩溃
-            if hasattr(output, "images"):
+            # 提取生成的 PIL 图片对象
+            if hasattr(output, "images") and len(output.images) > 0:
                 generated_img = output.images[0]
-            elif isinstance(output, (list, tuple)):
+            elif isinstance(output, (list, tuple)) and len(output) > 0:
                 generated_img = output[0]
             else:
                 generated_img = output
