@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
-# ⚡【终极版本锁】锁死 onnxruntime-gpu==1.19.0，完美对齐基础镜像中的 CUDA 12.4，拒绝 CUDA 13 报错！
+# ⚡【终极闭环】强行补齐最后一只地雷画图包 "matplotlib"，让姿态提取组件 dwpose 顺利闭环！
 RUN pip install --no-cache-dir \
     "runpod>=1.6.0" \
     "einops>=0.7.0" \
@@ -30,7 +30,8 @@ RUN pip install --no-cache-dir \
     "sentencepiece" \
     "protobuf" \
     "onnxruntime-gpu==1.19.0" \
-    "scipy"
+    "scipy" \
+    "matplotlib"
 
 # 实体复制你的 handler.py
 COPY handler.py /app/handler.py
