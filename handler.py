@@ -6,21 +6,19 @@ import base64
 from PIL import Image
 from io import BytesIO
 
-# ----------------------------------------------------
-# 1. 精准路径定位：模型和代码都在网盘的同一目录下
-# ----------------------------------------------------
+# 路径定位：网盘挂载在 /runpod-volume/FitDiT
 model_dir = "/runpod-volume/FitDiT"
 
-# 核心：必须把这个目录塞进 sys.path，否则 Python 在 /app 下找不到同在网盘里的 gradio_sd3.py
-if os.path.exists(model_dir) and model_dir not in sys.path:
+# 强行让容器本地的 Python 去网盘路径里找算法源码脚本
+if model_dir not in sys.path:
     sys.path.insert(0, model_dir)
 
 try:
     from gradio_sd3 import StableDiffusion3TryOnPipeline
 
-    print("[FitDiT] 🎉 成功从网盘目录中本地导入 StableDiffusion3TryOnPipeline 类！")
+    print("[FitDiT] 🎉 成功穿透到网盘目录，本地导入 StableDiffusion3TryOnPipeline 类！")
 except Exception as import_err:
-    print(f"[FitDiT] ❌ 致命错误！引入源码脚本失败，详情: {str(import_err)}")
+    print(f"[FitDiT] ❌ 致命错误！在网盘中引入源码脚本失败，详情: {str(import_err)}")
     StableDiffusion3TryOnPipeline = None
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -28,7 +26,6 @@ print(f"[FitDiT] 正在初始化物理设备 {device}，开始读取网盘大权
 
 try:
     if StableDiffusion3TryOnPipeline is not None:
-        # 传入 model_dir，让它在原地读取 model_index.json 和各组件权重
         pipeline = StableDiffusion3TryOnPipeline.from_pretrained(
             model_dir,
             torch_dtype=torch.float16 if device == "cuda" else torch.float32
@@ -66,7 +63,7 @@ def encode_image_to_base64(image):
 def handler(job):
     try:
         if pipeline is None:
-            return {"status": "failed", "error": "模型管线在容器初始化阶段加载失败，请核对云盘挂载结构。"}
+            return {"status": "failed", "error": "模型管线在容器初始化阶段加载失败，请检查网盘挂载。"}
 
         job_input = job.get('input', {})
         model_b64 = job_input.get('model_image')
