@@ -17,8 +17,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # 2. 软链接网盘中的 handler.py 到本地工作目录
 # 这样容器启动运行 python /app/handler.py 时，能直接执行网盘里的最新监听代码
-RUN mkdir -p /runpod-volume && \
-    ln -s /runpod-volume/FitDiT/handler.py /app/handler.py
+
+COPY handler.py /app/handler.py
+
+# 3. 创建云盘固定挂载点
+RUN mkdir -p /runpod-volume
 
 
 CMD [ "python", "-u", "/app/handler.py" ]
