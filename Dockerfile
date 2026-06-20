@@ -1,9 +1,7 @@
-# 选用兼容 RTX 4090 / A100 等高端算力架构的 CUDA 12 生产级 PyTorch 基础镜像
 FROM pytorch/pytorch:2.4.0-cuda12.4-cudnn9-runtime
-# 设置容器内无交互前端，防止阻塞构建
+
 ENV DEBIAN_FRONTEND=noninteractive
 
-# 安装核心系统级图像解码扩展包
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     git-lfs \
@@ -11,18 +9,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
-# 确立容器内的工作主目录
 WORKDIR /app
 
-# 预先复制依赖，利用 Docker 层缓存机制加速后续构建
+# 复制并建立固定的多方依赖关系
 COPY requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-# 预建模型挂载占位点，保证后续 RunPod 云盘直接对接到此处
-RUN mkdir -p /models
+# 创建云盘专属挂载点占位符
+RUN mkdir -p /runpod-volume
 
-# 将编写完成的业务处理逻辑代码复制到容器中
-COPY handler.py /app/handler.py
+# 核心改变：全选复制您当前项目包含的全部 GitHub 源码脚本到工作目录
+COPY . /app/
 
-# 设置启动命令，RunPod Serverless 会在拉取容器后自动执行此脚本监听外部请求
 CMD [ "python", "-u", "/app/handler.py" ]
