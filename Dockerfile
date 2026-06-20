@@ -2,7 +2,7 @@ FROM pytorch/pytorch:2.4.0-cuda12.4-cudnn9-runtime
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-# 安装系统基础图像和视频编解码依赖库（opencv-python 运行所必须）
+# 安装系统基础图像库
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     git-lfs \
@@ -12,10 +12,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
-# ⚡【终极语法修正】严格规范包名（omega-conf 修正为 omegaconf），并对所有控制符加双引号，杜绝 exit code 2 错误！
+# ⚡【彻底化解冲突】移除了 gradio 字段，让编译一路畅通执行到底！
 RUN pip install --no-cache-dir \
     "runpod>=1.6.0" \
-    "gradio>=4.0.0" \
     "einops>=0.7.0" \
     "opencv-python>=4.8.0" \
     "scikit-image>=0.21.0" \
@@ -31,7 +30,7 @@ RUN pip install --no-cache-dir \
     "sentencepiece" \
     "protobuf"
 
-# 实体复制您的 handler.py
+# 实体复制你的 handler.py
 COPY handler.py /app/handler.py
 
 # 创建云盘挂载目录占位

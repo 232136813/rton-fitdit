@@ -1,5 +1,21 @@
-import os
+# ----------------------------------------------------
+# 🔧 终极黑魔法：在系统环境没有安装时，动态伪造 gradio 运行时依赖模块
+# ----------------------------------------------------
 import sys
+from types import ModuleType
+
+if "gradio" not in sys.modules:
+    mock_gradio = ModuleType("gradio")
+    # 伪造 gradio_sd3.py 脚本中可能用到的核心组建与装饰器
+    mock_gradio.components = ModuleType("components")
+    mock_gradio.Interface = lambda *args, **kwargs: None
+    mock_gradio.Blocks = lambda *args, **kwargs: None
+    mock_gradio.load = lambda *args, **kwargs: None
+    sys.modules["gradio"] = mock_gradio
+    sys.modules["gradio.components"] = mock_gradio.components
+# ----------------------------------------------------
+
+import os
 import torch
 import runpod
 import base64
@@ -9,17 +25,16 @@ from io import BytesIO
 # 路径定位：网盘挂载在 /runpod-volume/FitDiT
 model_dir = "/runpod-volume/FitDiT"
 
-# 强行让容器本地的 Python 去网盘路径里找算法源码脚本
+# 让 Python 去网盘路径里找算法源码脚本
 if model_dir not in sys.path:
     sys.path.insert(0, model_dir)
 
 try:
     from gradio_sd3 import StableDiffusion3TryOnPipeline
 
-    print("[FitDiT] 🎉 成功穿透到网盘目录，本地导入 StableDiffusion3TryOnPipeline 类！")
+    print("[FitDiT] 🎉 成功穿透到网盘目录，且完美绕过依赖，成功导入 StableDiffusion3TryOnPipeline 类！")
 except Exception as import_err:
     print(f"[FitDiT] ❌ 致命错误！在网盘中引入源码脚本失败，详情: {str(import_err)}")
-    print(f"提示：请确保您的云盘根目录下的 FitDiT 文件夹内包含 gradio_sd3.py 和 src 文件夹")
     StableDiffusion3TryOnPipeline = None
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -42,7 +57,7 @@ except Exception as init_err:
 
 
 # ----------------------------------------------------
-# 2. 图像编解码工具函数
+# 3. 图像编解码工具函数
 # ----------------------------------------------------
 def decode_base64_image(base64_str):
     if "," in base64_str:
@@ -59,7 +74,7 @@ def encode_image_to_base64(image):
 
 
 # ----------------------------------------------------
-# 3. RunPod 主监听事件
+# 4. RunPod 主监听事件
 # ----------------------------------------------------
 def handler(job):
     try:
