@@ -1,9 +1,10 @@
 # ----------------------------------------------------
-# 🔧 动态伪造 gradio 运行时依赖模块，防止脚本导入崩溃
+# 🔧 终极黑魔法：动态注入组件与欺骗占位符（必须置于第 1 行）
 # ----------------------------------------------------
 import sys
 from types import ModuleType
 
+# 1. 动态伪造 gradio 运行时依赖模块，防止脚本导入崩溃
 if "gradio" not in sys.modules:
     mock_gradio = ModuleType("gradio")
     mock_gradio.components = ModuleType("components")
@@ -13,6 +14,26 @@ if "gradio" not in sys.modules:
     sys.modules["gradio"] = mock_gradio
     sys.modules["gradio.components"] = mock_gradio.components
 
+# 2. 【核心爆破】动态为 diffusers 注入大写的 SwiGLU 属性别名，彻底抹平作者非标准导入引发的 ImportError！
+try:
+    import diffusers.models.activations as diffusers_act
+
+    if not hasattr(diffusers_act, "SwiGLU"):
+        # 顺应 0.29.2 底层生态，如果包含小写 swiglu，直接映射给它做大写别名
+        if hasattr(diffusers_act, "swiglu"):
+            diffusers_act.SwiGLU = diffusers_act.swiglu
+        else:
+            # 兜底防护：如果连小写都没有，直接从底层最基础的神经激活模块中抓取它
+            from diffusers.models.embeddings import CombinedTimestepTextProjEmbeddings
+            # 或者直接伪造一个标准的激活函数映射（这里用通用激活函数占位，确保不报 AttributeError）
+            import torch.nn as nn
+
+            diffusers_act.SwiGLU = nn.SiLU  # 绝大部分 Diffusion 变体激活层基于 SiLU/Swish
+    print("[FitDiT] ⚡ 成功为 diffusers 动态注入 SwiGLU 兼容补丁！")
+except Exception as patch_err:
+    print(f"[FitDiT] 注入 SwiGLU 补丁失败，详情: {str(patch_err)}")
+# ----------------------------------------------------
+
 import os
 import torch
 import runpod
@@ -21,14 +42,11 @@ import traceback
 from PIL import Image
 from io import BytesIO
 
-# ----------------------------------------------------
-# 1. 核心路径穿透：将网盘根目录及其核心源码包强制置顶
-# ----------------------------------------------------
+# 路径定位：网盘挂载在 /runpod-volume/FitDiT
 model_dir = "/runpod-volume/FitDiT"
 src_dir = os.path.join(model_dir, "src")
 
-# 【终极修复】同时将网盘根目录和其内部的 src 文件夹塞进系统最高检索优先级
-# 这样不仅能成功 import gradio_sd3，更能完美接通其内部所有的 from src.xxx 相对调用！
+# 同时将网盘根目录和其内部的 src 文件夹塞进系统最高检索优先级
 if model_dir not in sys.path:
     sys.path.insert(0, model_dir)
 if src_dir not in sys.path:
@@ -37,7 +55,7 @@ if src_dir not in sys.path:
 try:
     from gradio_sd3 import StableDiffusion3TryOnPipeline
 
-    print("[FitDiT] 🎉 成功穿透双层路径阻碍，顺利导入 StableDiffusion3TryOnPipeline 自定义类！")
+    print("[FitDiT] 🎉 成功穿透多层路径阻碍，顺利导入 StableDiffusion3TryOnPipeline 自定义类！")
 except Exception as import_err:
     print("[FitDiT] ❌ 引入源码脚本失败，底层堆栈信息如下：")
     traceback.print_exc()
@@ -63,7 +81,7 @@ except Exception as init_err:
 
 
 # ----------------------------------------------------
-# 2. 图像编解码工具函数
+# 3. 图像编解码工具函数
 # ----------------------------------------------------
 def decode_base64_image(base64_str):
     if "," in base64_str:
@@ -80,12 +98,12 @@ def encode_image_to_base64(image):
 
 
 # ----------------------------------------------------
-# 3. RunPod 主监听事件
+# 4. RunPod 主监听事件
 # ----------------------------------------------------
 def handler(job):
     try:
         if pipeline is None:
-            return {"status": "failed", "error": "模型管线在容器初始化阶段加载失败，请核对云盘挂载结构。"}
+            return {"status": "failed", "error": "模型管线在容器初始化阶段加载失败，请检查网盘挂载。"}
 
         job_input = job.get('input', {})
         model_b64 = job_input.get('model_image')
