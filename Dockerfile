@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
-# ⚡【全包闭环】补充了 onnxruntime-gpu 及其配套姿态识别模型所缺的全部数值计算库（如 scipy）
+# ⚡【终极版本锁】锁死 onnxruntime-gpu==1.19.0，完美对齐基础镜像中的 CUDA 12.4，拒绝 CUDA 13 报错！
 RUN pip install --no-cache-dir \
     "runpod>=1.6.0" \
     "einops>=0.7.0" \
@@ -29,7 +29,7 @@ RUN pip install --no-cache-dir \
     "Pillow>=10.3.0" \
     "sentencepiece" \
     "protobuf" \
-    "onnxruntime-gpu" \
+    "onnxruntime-gpu==1.19.0" \
     "scipy"
 
 # 实体复制你的 handler.py
