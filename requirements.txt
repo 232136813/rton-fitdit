@@ -1,16 +1,12 @@
-# 1. RunPod Serverless 核心网关
 runpod>=1.6.0
 
-# 2. 深度学习上层核心库（移除 torch/torchvision 声明，直接沿用基础镜像中的原生高性能版本）
-transformers>=4.44.0
-diffusers>=0.30.0
-accelerate>=0.33.0
-peft>=0.12.0
-safetensors>=0.4.1
+# 修复核心：锁定在 0.28.0 到 0.29.0 之间，这个区间完美避开了引发冲突的 Flash Attention 3 的代码改动
+diffusers>=0.28.0,<0.29.0
+transformers>=4.40.0
+accelerate>=0.29.0
+peft>=0.10.0
+safetensors>=0.4.0
 
-# 3. 图像处理与编解码依赖
 Pillow>=10.3.0
-
-# 4. 文本 Tokenizer 必备底层依赖（防止大模型文本编码器冷启动报错）
 sentencepiece
 protobuf
