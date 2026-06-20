@@ -12,32 +12,39 @@ if "gradio" not in sys.modules:
     mock_gradio.load = lambda *args, **kwargs: None
     sys.modules["gradio"] = mock_gradio
     sys.modules["gradio.components"] = mock_gradio.components
-# ----------------------------------------------------
 
 import os
 import torch
 import runpod
 import base64
+import traceback
 from PIL import Image
 from io import BytesIO
 
-# 路径定位：网盘挂载在 /runpod-volume/FitDiT
+# ----------------------------------------------------
+# 1. 核心路径穿透：将网盘根目录及其核心源码包强制置顶
+# ----------------------------------------------------
 model_dir = "/runpod-volume/FitDiT"
+src_dir = os.path.join(model_dir, "src")
 
-# 让 Python 去网盘路径里找算法源码脚本
+# 【终极修复】同时将网盘根目录和其内部的 src 文件夹塞进系统最高检索优先级
+# 这样不仅能成功 import gradio_sd3，更能完美接通其内部所有的 from src.xxx 相对调用！
 if model_dir not in sys.path:
     sys.path.insert(0, model_dir)
+if src_dir not in sys.path:
+    sys.path.insert(0, src_dir)
 
 try:
     from gradio_sd3 import StableDiffusion3TryOnPipeline
 
-    print("[FitDiT] 🎉 成功穿透到网盘目录，且完美绕过依赖，成功导入 StableDiffusion3TryOnPipeline 类！")
+    print("[FitDiT] 🎉 成功穿透双层路径阻碍，顺利导入 StableDiffusion3TryOnPipeline 自定义类！")
 except Exception as import_err:
-    print(f"[FitDiT] ❌ 致命错误！在网盘中引入源码脚本失败，详情: {str(import_err)}")
+    print("[FitDiT] ❌ 引入源码脚本失败，底层堆栈信息如下：")
+    traceback.print_exc()
     StableDiffusion3TryOnPipeline = None
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
-print(f"[FitDiT] 正在初始化物理设备 {device}，开始读取网盘大权重...")
+print(f"[FitDiT] 正在初始化物理设备 {device}，开始结合网盘大权重进行管线实例化...")
 
 try:
     if StableDiffusion3TryOnPipeline is not None:
@@ -56,7 +63,7 @@ except Exception as init_err:
 
 
 # ----------------------------------------------------
-# 3. 图像编解码工具函数
+# 2. 图像编解码工具函数
 # ----------------------------------------------------
 def decode_base64_image(base64_str):
     if "," in base64_str:
@@ -73,12 +80,12 @@ def encode_image_to_base64(image):
 
 
 # ----------------------------------------------------
-# 4. RunPod 主监听事件
+# 3. RunPod 主监听事件
 # ----------------------------------------------------
 def handler(job):
     try:
         if pipeline is None:
-            return {"status": "failed", "error": "模型管线在容器初始化阶段加载失败，请检查网盘挂载。"}
+            return {"status": "failed", "error": "模型管线在容器初始化阶段加载失败，请核对云盘挂载结构。"}
 
         job_input = job.get('input', {})
         model_b64 = job_input.get('model_image')
