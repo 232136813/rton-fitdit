@@ -15,9 +15,8 @@ WORKDIR /app
 COPY requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-# 2. ⚡【核心修复】直接从作者官方 GitHub 代码仓中精准克隆缺失的算法脚本和 src 依赖
-# 使用 --depth 1 保证只抓取最轻量的代码文字，只需 2 秒钟，且绝不重复下载大权重
-RUN git clone --depth 1 https://github.com /tmp/fitdit_src && \
+# 2. ⚡【终极修复】移除了拼接中的隐形空格，精准拉取官方开源算法脚本与模块
+RUN git clone --depth 1 https://github.com/BoyuanJiang/FitDiT.git /tmp/fitdit_src && \
     cp /tmp/fitdit_src/gradio_sd3.py /app/gradio_sd3.py && \
     cp -r /tmp/fitdit_src/src /app/src && \
     rm -rf /tmp/fitdit_src
