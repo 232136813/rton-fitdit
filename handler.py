@@ -6,34 +6,31 @@ import base64
 from PIL import Image
 from io import BytesIO
 
-# ----------------------------------------------------
-# 1. 终极合流：从 GitHub 源码本地加载类，从云盘读取大权重
-# ----------------------------------------------------
-# 权重存储在云盘中
+# 权重固定在 RunPod 云盘强制挂载点
 model_dir = "/runpod-volume/FitDiT"
 
-# 核心修正：既然通过 GitHub 源代码部署，直接从容器工作目录导入您项目自带的 gradio_sd3.py 脚本
+# 直接从当前运行目录本地安全导入刚刚下载好的自定义类
 try:
     from gradio_sd3 import StableDiffusion3TryOnPipeline
 
-    print("[FitDiT] 🎉 成功从项目源码中本地导入 StableDiffusion3TryOnPipeline 类。")
+    print("[FitDiT] 🎉 成功从容器运行目录中本地导入 StableDiffusion3TryOnPipeline 自定义类！")
 except Exception as import_err:
-    print(f"[FitDiT] ❌ 引入源码脚本失败，详情: {str(import_err)}")
+    print(f"[FitDiT] ❌ 致命错误！引入源码脚本失败，详情: {str(import_err)}")
     StableDiffusion3TryOnPipeline = None
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
-print(f"[FitDiT] 正在初始化物理设备 {device}，尝试结合网盘权重加载试衣管线...")
+print(f"[FitDiT] 正在初始化物理设备 {device}，开始读取云盘大权重...")
 
 try:
     if StableDiffusion3TryOnPipeline is not None:
-        # 使用本地健康的自定义类，加载云盘中的大模型参数
+        # 使用本地健康的自定义类，精准加载云盘中的大模型参数
         pipeline = StableDiffusion3TryOnPipeline.from_pretrained(
             model_dir,
             torch_dtype=torch.float16 if device == "cuda" else torch.float32
         )
         if device == "cuda":
             pipeline.to(device)
-        print("[FitDiT] 🎉 试衣模型与自适应管线加载成功，Serverless 算力单元已就绪！")
+        print("[FitDiT] 🎉🎉 试衣大模型与自适应管线加载成功，Serverless 算力单元已全线就绪！")
     else:
         raise ValueError("核心依赖类 StableDiffusion3TryOnPipeline 缺失，容器终止。")
 except Exception as init_err:
@@ -64,7 +61,7 @@ def encode_image_to_base64(image):
 def handler(job):
     try:
         if pipeline is None:
-            return {"status": "failed", "error": "模型管线在容器初始化阶段加载失败，请核对日志中具体报错项。"}
+            return {"status": "failed", "error": "模型管线在容器初始化阶段加载失败，请核对云盘挂载结构。"}
 
         job_input = job.get('input', {})
         model_b64 = job_input.get('model_image')
@@ -103,9 +100,9 @@ def handler(job):
             )
 
             if hasattr(output, "images") and len(output.images) > 0:
-                generated_img = output.images
+                generated_img = output.images[0]
             elif isinstance(output, (list, tuple)) and len(output) > 0:
-                generated_img = output
+                generated_img = output[0]
             else:
                 generated_img = output
 
