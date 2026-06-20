@@ -7,24 +7,21 @@ from PIL import Image
 from io import BytesIO
 
 # ----------------------------------------------------
-# 0. 动态注入模型源码路径
+# 1. 动态注入模型源码路径与全局初始化
 # ----------------------------------------------------
-# 确保 diffusers 在加载 trust_remote_code 时能顺利在模型根目录下找到与其配套的本地 python 模块
 model_dir = "/models/FitDiT"
+
+# 确保 diffusers 在加载 trust_remote_code 时能顺利在模型根目录下找到与其配套的本地 python 模块
 if os.path.exists(model_dir) and model_dir not in sys.path:
     sys.path.insert(0, model_dir)
 
 from diffusers import DiffusionPipeline
 
-# ----------------------------------------------------
-# 1. 容器全局初始化 (单例模式防冷启动耗时)
-# ----------------------------------------------------
 device = "cuda" if torch.cuda.is_available() else "cpu"
-
-print(f"[FitDiT] 正在初始化物理设备 {device}，尝试从目标路径 [{model_dir}] 唤醒试衣管线...")
+print(f"[FitDiT] 正在初始化物理设备 {device}，尝试从目标路径 [{model_dir}] 加载试衣管线...")
 
 try:
-    # 启用 trust_remote_code 自动调用本地权重目录下的自定义类与代码
+    # 完美适配 PyTorch 2.4，开启 trust_remote_code 自动调用本地权重目录下的自定义类
     pipeline = DiffusionPipeline.from_pretrained(
         model_dir,
         torch_dtype=torch.float16 if device == "cuda" else torch.float32,
@@ -69,9 +66,9 @@ def handler(job):
 
         # 解析请求包
         job_input = job.get('input', {})
-        model_b64 = job_input.get('model_image')      # 模特原图 (Base64)
+        model_b64 = job_input.get('model_image')  # 模特原图 (Base64)
         garment_b64 = job_input.get('garment_image')  # 衣服平铺图 (Base64)
-        mask_b64 = job_input.get('mask_image')        # 试衣选区遮罩图 (Base64)
+        mask_b64 = job_input.get('mask_image')  # 试衣选区遮罩图 (Base64)
 
         # 提取超参数 (设置默认值)
         prompt = job_input.get('prompt', "a person wearing the garment, fashion, photorealistic")
@@ -82,7 +79,7 @@ def handler(job):
         if not model_b64 or not garment_b64:
             return {"status": "failed", "error": "必须提供有效参数: model_image 且 garment_image"}
 
-        # 恢复图片对象
+        # 恢复图片对象并记录模特原始尺寸，方便最终将结果图还原输出
         model_image = decode_base64_image(model_b64)
         garment_image = decode_base64_image(garment_b64)
         original_size = model_image.size
@@ -94,7 +91,7 @@ def handler(job):
             # 如果未传入 Mask，默认生成全白遮罩让模型自行全画幅泛化
             mask_image = Image.new("RGB", original_size, (255, 255, 255))
 
-        # FitDiT 最佳性能分辨率是 768x1024
+        # 核心：FitDiT 最佳性能分辨率是 768x1024
         target_size = (768, 1024)
         model_img_resized = model_image.resize(target_size)
         garment_img_resized = garment_image.resize(target_size)
@@ -110,9 +107,10 @@ def handler(job):
                 num_inference_steps=steps,
                 guidance_scale=guidance_scale
             )
-            # 获取模型输出图
+            # 修正：通过 .images[0] 提取生成的 PIL 图片对象
             generated_img = output.images[0]
-            # 无损重置回模特初始传入的比例与尺寸
+
+            # 将生成的图片无损重置回模特初始传入的比例与尺寸
             final_image = generated_img.resize(original_size)
 
         # 编码并组装返回结构
