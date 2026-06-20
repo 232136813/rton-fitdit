@@ -4,7 +4,8 @@ import runpod
 import base64
 from PIL import Image
 from io import BytesIO
-from diffusers import StableDiffusion3TryOnPipeline
+# 修复：移除导致 ImportError 的旧版静态导入，改为官方推荐的动态加载器入口
+from diffusers import DiffusionPipeline 
 
 # ----------------------------------------------------
 # 1. 容器全局初始化 (单例模式防冷启动耗时)
@@ -14,14 +15,19 @@ model_dir = "/models/FitDiT"
 
 print(f"[FitDiT] 开始在设备 {device} 上加载试衣管线...")
 
-# 加载官方权重，使用 float16 保证在 24G 显存（如 RTX 4090）上高效运行
-pipeline = StableDiffusion3TryOnPipeline.from_pretrained(
-    model_dir,
-    torch_dtype=torch.float16
-)
-pipeline.to(device)
-
-print("[FitDiT] 试衣模型加载完成，Serverless 接收端已就绪。")
+try:
+    # 修复核心：使用 DiffusionPipeline 并配合 trust_remote_code=True
+    # 让 diffusers 自动识别模型路径下 model_index.json 中的 "StableDiffusion3TryOnPipeline"
+    pipeline = DiffusionPipeline.from_pretrained(
+        model_dir,
+        torch_dtype=torch.float16,
+        trust_remote_code=True
+    )
+    pipeline.to(device)
+    print("[FitDiT] 试衣模型加载完成，Serverless 接收端已就绪。")
+except Exception as init_err:
+    print(f"[FitDiT] 致命错误！未能成功完成管线初始化: {str(init_err)}")
+    pipeline = None
 
 
 # ----------------------------------------------------
@@ -48,11 +54,15 @@ def encode_image_to_base64(image):
 # ----------------------------------------------------
 def handler(job):
     try:
+        # 拦截模型未初始化成功的边界情况
+        if pipeline is None:
+            return {"status": "failed", "error": "模型管线在容器初始化阶段未能成功加载，请检查挂载路径与权重文件结构。"}
+
         # 解析请求包
         job_input = job.get('input', {})
-        model_b64 = job_input.get('model_image')  # 模特原图 (Base64)
+        model_b64 = job_input.get('model_image')      # 模特原图 (Base64)
         garment_b64 = job_input.get('garment_image')  # 衣服平铺图 (Base64)
-        mask_b64 = job_input.get('mask_image')  # 试衣选区遮罩图 (Base64)
+        mask_b64 = job_input.get('mask_image')        # 试衣选区遮罩图 (Base64)
 
         # 提取超参数 (设置默认值)
         prompt = job_input.get('prompt', "a person wearing the garment, fashion, photorealistic")
@@ -111,7 +121,6 @@ def handler(job):
             "status": "failed",
             "error": f"推理服务异常终止: {str(e)}"
         }
-
 
 
 if __name__ == "__main__":
