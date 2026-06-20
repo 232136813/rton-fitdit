@@ -1,5 +1,4 @@
 # 选用兼容 RTX 4090 / A100 等高端算力架构的 CUDA 12 生产级 PyTorch 基础镜像
-#FROM pytorch/pytorch:2.1.2-cuda12.1-cudnn8-runtime
 FROM pytorch/pytorch:2.4.0-cuda12.4-cudnn9-runtime
 # 设置容器内无交互前端，防止阻塞构建
 ENV DEBIAN_FRONTEND=noninteractive
