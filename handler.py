@@ -21,7 +21,7 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 print(f"[FitDiT] 正在初始化物理设备 {device}，尝试从目标路径 [{model_dir}] 加载试衣管线...")
 
 try:
-    # 完美适配 PyTorch 2.4，开启 trust_remote_code 自动调用本地权重目录下的自定义类
+    # 完美适配固定版本生态，开启 trust_remote_code 自动调用本地权重目录下的自定义类
     pipeline = DiffusionPipeline.from_pretrained(
         model_dir,
         torch_dtype=torch.float16 if device == "cuda" else torch.float32,
@@ -107,8 +107,14 @@ def handler(job):
                 num_inference_steps=steps,
                 guidance_scale=guidance_scale
             )
-            # 修正：通过 .images[0] 提取生成的 PIL 图片对象
-            generated_img = output.images[0]
+
+            # 鲁棒性提取：完美兼容对象返回或列表返回，防止在不同 diffusers 版本间切换时崩溃
+            if hasattr(output, "images"):
+                generated_img = output.images[0]
+            elif isinstance(output, (list, tuple)):
+                generated_img = output[0]
+            else:
+                generated_img = output
 
             # 将生成的图片无损重置回模特初始传入的比例与尺寸
             final_image = generated_img.resize(original_size)
@@ -125,7 +131,6 @@ def handler(job):
             "status": "failed",
             "error": f"推理服务内部异常终止: {str(e)}"
         }
-
 
 
 if __name__ == "__main__":

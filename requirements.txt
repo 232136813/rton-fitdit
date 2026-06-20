@@ -1,8 +1,11 @@
 runpod>=1.6.0
 
-# 修复核心：锁定在 0.28.0 到 0.29.0 之间，这个区间完美避开了引发冲突的 Flash Attention 3 的代码改动
+# 修复核心：限制 huggingface_hub 的版本，确保 cached_download 接口存在
+huggingface_hub>=0.20.0,<0.24.0
+
+# 保持 diffusers 和 transformers 的稳定生态配对
 diffusers>=0.28.0,<0.29.0
-transformers>=4.40.0
+transformers>=4.40.0,<4.45.0
 accelerate>=0.29.0
 peft>=0.10.0
 safetensors>=0.4.0
