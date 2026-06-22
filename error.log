@@ -1,0 +1,43 @@
+Downloading openai/clip-vit-large-patch14 (vision encoder only) ...
+    hf_hub failed for config.json: Fast download using 'hf_transfer' is enabled (HF_HUB_ENABLE_HF_TRANSFER=1) but 'hf_transfer' package is not available in your environment. Try `pip install hf_transfer`.
+    trying direct download: https://huggingface.co/openai/clip-vit-large-patch14/resolve/main/config.json
+    downloaded config.json via urllib
+    hf_hub failed for preprocessor_config.json: Fast download using 'hf_transfer' is enabled (HF_HUB_ENABLE_HF_TRANSFER=1) but 'hf_transfer' package is not available in your environment. Try `pip install hf_transfer`.
+    trying direct download: https://huggingface.co/openai/clip-vit-large-patch14/resolve/main/preprocessor_config.json
+    downloaded preprocessor_config.json via urllib
+    clip-vit-large-patch14 done.
+[3/3] Downloading laion/CLIP-ViT-bigG-14-laion2B-39B-b160k (vision encoder only) ...
+    hf_hub failed for config.json: Fast download using 'hf_transfer' is enabled (HF_HUB_ENABLE_HF_TRANSFER=1) but 'hf_transfer' package is not available in your environment. Try `pip install hf_transfer`.
+    trying direct download: https://huggingface.co/laion/CLIP-ViT-bigG-14-laion2B-39B-b160k/resolve/main/config.json
+    downloaded config.json via urllib
+    hf_hub failed for preprocessor_config.json: Fast download using 'hf_transfer' is enabled (HF_HUB_ENABLE_HF_TRANSFER=1) but 'hf_transfer' package is not available in your environment. Try `pip install hf_transfer`.
+    trying direct download: https://huggingface.co/laion/CLIP-ViT-bigG-14-laion2B-39B-b160k/resolve/main/preprocessor_config.json
+    downloaded preprocessor_config.json via urllib
+    hf_hub failed for model.safetensors: 404 Client Error. (Request ID: Root=1-6a39762e-763df8e4124681e2256ae1bb;62c57c21-a6e0-44d0-aea5-2cec98283255)
+
+Entry Not Found for url: https://huggingface.co/laion/CLIP-ViT-bigG-14-laion2B-39B-b160k/resolve/main/model.safetensors.
+    trying direct download: https://huggingface.co/laion/CLIP-ViT-bigG-14-laion2B-39B-b160k/resolve/main/model.safetensors
+    urllib failed for model.safetensors: HTTP Error 404: Not Found
+> wget -q -O /workspace/FitDit/clip-vit-bigG-14/model.safetensors https://huggingface.co/laion/CLIP-ViT-bigG-14-laion2B-39B-b160k/resolve/main/model.safetensors
+    hf_hub failed for pytorch_model.bin: 404 Client Error. (Request ID: Root=1-6a39762e-33ba17aa04ccd64333166c76;867203d5-45f1-48ea-967d-f35bc33ce3e3)
+
+Entry Not Found for url: https://huggingface.co/laion/CLIP-ViT-bigG-14-laion2B-39B-b160k/resolve/main/pytorch_model.bin.
+    trying direct download: https://huggingface.co/laion/CLIP-ViT-bigG-14-laion2B-39B-b160k/resolve/main/pytorch_model.bin
+    urllib failed for pytorch_model.bin: HTTP Error 404: Not Found
+> wget -q -O /workspace/FitDit/clip-vit-bigG-14/pytorch_model.bin https://huggingface.co/laion/CLIP-ViT-bigG-14-laion2B-39B-b160k/resolve/main/pytorch_model.bin
+    clip-vit-bigG-14 done.
+
+--- Verification ---
+[OK] src/pipeline_stable_diffusion_3_tryon.py
+[OK] preprocess/dwpose/__init__.py
+[OK] preprocess/humanparsing/run_parsing.py
+[OK] transformer_garm/diffusion_pytorch_model.safetensors
+[OK] transformer_vton/diffusion_pytorch_model.safetensors
+[OK] vae/diffusion_pytorch_model.safetensors
+[OK] pose_guider/diffusion_pytorch_model.bin
+[OK] dwpose/yolox_l.onnx
+[OK] humanparsing/parsing_atr.onnx
+[OK] model_index.json
+[OK] clip-vit-large-patch14/config.json
+[OK] clip-vit-bigG-14/config.json
+
