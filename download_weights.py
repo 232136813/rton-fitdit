@@ -133,7 +133,7 @@ def main():
             print(f"[3/3] Downloading {hf_repo} ...")
             token_arg = f"--token {args.hf_token}" if args.hf_token else ""
             run(
-                f"huggingface-cli download {hf_repo} --local-dir {clip_dir} {token_arg}"
+                f"hf download {hf_repo} --local-dir {clip_dir} {token_arg}"
             )
             print(f" {local_name} ready.")
         else:
