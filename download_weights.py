@@ -126,15 +126,30 @@ def main():
         "clip-vit-large-patch14": "openai/clip-vit-large-patch14",
         "clip-vit-bigG-14": "laion/CLIP-ViT-bigG-14-laion2B-39B-b160k",
     }
+    CLIP_FILES = [
+        'config.json',
+        'preprocessor_config.json',
+        'model.safetensors',
+        'pytorch_model.bin',
+    ]
     for local_name, hf_repo in CLIP_MODELS.items():
         clip_dir = os.path.join(out, local_name)
         marker = os.path.join(clip_dir, "config.json")
         if not os.path.exists(marker):
             print(f"[3/3] Downloading {hf_repo} ...")
-            token_arg = f"--token {args.hf_token}" if args.hf_token else ""
-            run(
-                f"hf download {hf_repo} --local-dir {clip_dir} {token_arg}"
-            )
+            os.makedirs(clip_dir, exist_ok=True)
+            from huggingface_hub import hf_hub_download
+            for fname in CLIP_FILES:
+                try:
+                    hf_hub_download(
+                        repo_id=hf_repo,
+                        filename=fname,
+                        local_dir=clip_dir,
+                        token=args.hf_token,
+                    )
+                    print(f" downloading {fname}")
+                except Exception:
+                    pass
             print(f" {local_name} ready.")
         else:
             print(f"[3/3] {local_name} already present, skipping.")
