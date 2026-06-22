@@ -87,7 +87,7 @@ def main():
         # Use huggingface-cli to download
         try:
             run(
-                f"huggingface-cli download BoyuanJiang/FitDiT --local-dir {out} {token_arg}"
+                f"hf download BoyuanJiang/FitDiT --local-dir {out} {token_arg}"
             )
         except subprocess.CalledProcessError:
             print("\n huggingface-cli failed. Trying git git-lfs clone ...")
