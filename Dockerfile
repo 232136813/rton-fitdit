@@ -1,8 +1,9 @@
 FROM pytorch/pytorch:2.4.0-cuda12.4-cudnn9-runtime
 
 ENV DEBIAN_FRONTEND=noninteractive
+ENV PYTHONUNBUFFERED=1
 
-# 安装系统基础图像库
+# System libraries for OpenCV and image processing
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     git-lfs \
@@ -12,33 +13,29 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
-# ⚡【最核心版本死锁】
-# 1. 升级 diffusers 到 0.29.2 确保包含 SD3LoraLoaderMixin 接口
-# 2. 同时锁定 transformers 版本线，完美避开最新版引发的 infer_schema 算子冲突地雷！
+# Install Python dependencies matching FitDiT official environment
 RUN pip install --no-cache-dir \
     "runpod>=1.6.0" \
-    "einops>=0.7.0" \
-    "opencv-python>=4.8.0" \
-    "scikit-image>=0.21.0" \
-    "timm>=0.9.0" \
-    "omegaconf>=2.3.0" \
-    "huggingface_hub>=0.23.0,<0.25.0" \
-    "diffusers==0.29.2" \
-    "transformers==4.43.3" \
+    "diffusers==0.31.0" \
+    "transformers==4.39.3" \
     "accelerate>=0.31.0" \
-    "peft>=0.11.0" \
     "safetensors>=0.4.0" \
+    "huggingface_hub>=0.23.0" \
+    "einops>=0.7.0" \
+    "opencv-python-headless>=4.8.0" \
     "Pillow>=10.3.0" \
+    "onnxruntime-gpu==1.20.1" \
+    "scipy" \
+    "scikit-image>=0.21.0" \
     "sentencepiece" \
     "protobuf" \
-    "onnxruntime-gpu==1.19.0" \
-    "scipy" \
-    "matplotlib"
+    "peft>=0.11.0"
 
-# 实体复制你的 handler.py
+# Copy application code
 COPY handler.py /app/handler.py
+COPY download_weights.py /app/download_weights.py
 
-# 创建云盘挂载目录占位
+# Network volume mount point for model weights
 RUN mkdir -p /runpod-volume
 
-CMD [ "python", "-u", "/app/handler.py" ]
+CMD ["python", "-u", "/app/handler.py"]

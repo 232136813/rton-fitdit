@@ -1,175 +1,345 @@
-# ----------------------------------------------------
-# 🔧 终极系统级黑魔法：在任何三方库加载前，强行预注入和伪造组件（必须置于第 1 行）
-# ----------------------------------------------------
-import sys
-from types import ModuleType
-
-# 1. 动态伪造 gradio 运行时依赖模块，防止脚本导入崩溃
-if "gradio" not in sys.modules:
-    mock_gradio = ModuleType("gradio")
-    mock_gradio.components = ModuleType("components")
-    mock_gradio.Interface = lambda *args, **kwargs: None
-    mock_gradio.Blocks = lambda *args, **kwargs: None
-    mock_gradio.load = lambda *args, **kwargs: None
-    sys.modules["gradio"] = mock_gradio
-    sys.modules["gradio.components"] = mock_gradio.components
-
-# 2. 🔥【绝杀方案】创建全新的伪造激活函数模块，强行拦截并覆盖官方的 diffusers.models.activations
-# 这样作者的代码在执行 import 时，会直接向我们的这个伪造模块索要属性，100% 绕过官方包的限制！
-try:
-    # A. 先正常引入官方包，把里面健康的、作者需要的组件全部拉过来
-    import diffusers.models.activations as official_act
-
-    # B. 建立一个空模块作为欺骗中转站
-    mock_act = ModuleType("diffusers.models.activations")
-
-    # C. 实体克隆官方已有的全部合法属性（如 GEGLU, GELU, ApproximateGELU, FP32SiLU 等）
-    for attr in dir(official_act):
-        setattr(mock_act, attr, getattr(official_act, attr))
-
-    # D. 💥【最核心注入】强行为其塞入作者代码中缺失的大写 SwiGLU 属性！
-    import torch.nn as nn
-
-    if hasattr(official_act, "swiglu"):
-        mock_act.SwiGLU = official_act.swiglu
-    else:
-        mock_act.SwiGLU = nn.SiLU  # 完美兜底：使用 Diffusion 家族最底层的通用 Swish/SiLU 激活组件占位
-
-    # E. 覆盖系统全局模块字典，完成狸猫换太子
-    sys.modules["diffusers.models.activations"] = mock_act
-    print("[FitDiT] ⚡ 成功完成系统级 SwiGLU 伪造注入与模块覆盖保护！")
-except Exception as sys_patch_err:
-    print(f"[FitDiT] 系统级补丁注入失败，详情: {str(sys_patch_err)}")
-# ----------------------------------------------------
-
 import os
-import torch
-import runpod
+import sys
+import math
 import base64
 import traceback
-from PIL import Image
+import random
 from io import BytesIO
 
-# 路径定位：网盘挂载在 /runpod-volume/FitDiT
-model_dir = "/runpod-volume/FitDiT"
-src_dir = os.path.join(model_dir, "src")
+import cv2
+import numpy as np
+import torch
+from PIL import Image
 
-# 同时将网盘根目录和其内部的 src 文件夹塞进系统最高检索优先级
-if model_dir not in sys.path:
-    sys.path.insert(0, model_dir)
-if src_dir not in sys.path:
-    sys.path.insert(0, src_dir)
+import runpod
 
-try:
-    from gradio_sd3 import StableDiffusion3TryOnPipeline
+# ==============================================================================
+# 1. 基础全局配置
+# ==============================================================================
+WEIGHTS_DIR = os.environ.get("FITDIT_WEIGHTS_DIR", "/runpod-volume/FitDiT")
+DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+USE_FP16 = os.environ.get("FITDIT_FP16", "1") == "1"
+CPU_OFFLOAD = os.environ.get("FITDIT_CPU_OFFLOAD", "0") == "1"
 
-    print("[FitDiT] 🎉 成功穿透多层路径阻碍，顺利导入 StableDiffusion3TryOnPipeline 自定义类！")
-except Exception as import_err:
-    print("[FitDiT] ❌ 引入源码脚本失败，底层堆栈信息如下：")
-    traceback.print_exc()
-    StableDiffusion3TryOnPipeline = None
+# 用户友好标签到模型内部品类的映射
+CATEGORY_MAP = {
+    "upper_body": "Upper-body",
+    "upper-body": "Upper-body",
+    "tops": "Upper-body",
+    "lower_body": "Lower-body",
+    "lower-body": "Lower-body",
+    "bottoms": "Lower-body",
+    "dresses": "Dresses",
+    "full_body": "Dresses",
+    "one-pieces": "Dresses",
+}
 
-device = "cuda" if torch.cuda.is_available() else "cpu"
-print(f"[FitDiT] 正在初始化物理设备 {device}，开始结合网盘大权重进行管线实例化...")
+# 动态添加 FitDiT 源码路径到环境变量，确保可以正常 import 内部模块
+src_dir = os.path.join(WEIGHTS_DIR, "src")
+fitdit_root = WEIGHTS_DIR
 
-try:
-    if StableDiffusion3TryOnPipeline is not None:
-        pipeline = StableDiffusion3TryOnPipeline.from_pretrained(
-            model_dir,
-            torch_dtype=torch.float16 if device == "cuda" else torch.float32
-        )
-        if device == "cuda":
-            pipeline.to(device)
-        print("[FitDiT] 🎉🎉 试衣大模型与自适应管线加载成功，Serverless 算力单元已全线就绪！")
+for p in [fitdit_root, src_dir]:
+    if p not in sys.path:
+        sys.path.insert(0, p)
+
+
+# ==============================================================================
+# 2. 图像处理工具函数
+# ==============================================================================
+def decode_base64_image(b64_str: str) -> Image.Image:
+    """将前端传来的 Base64 字符串（含或不含 data-URI 前缀）解码为 PIL Image"""
+    if "," in b64_str:
+        b64_str = b64_str.split(",", 1)[1]
+    return Image.open(BytesIO(base64.b64decode(b64_str))).convert("RGB")
+
+
+def encode_image_to_base64(image: Image.Image, fmt: str = "JPEG", quality: int = 95) -> str:
+    """将 PIL Image 编码为带 data-URI 前缀的 Base64 字符串"""
+    buf = BytesIO()
+    image.save(buf, format=fmt, quality=quality)
+    b64 = base64.b64encode(buf.getvalue()).decode("utf-8")
+    mime = "image/jpeg" if fmt == "JPEG" else "image/png"
+    return f"data:{mime};base64,{b64}"
+
+
+def pad_and_resize(im, new_width=768, new_height=1024, pad_color=(255, 255, 255)):
+    """保持宽高比缩放图片，并在周围填充纯色边框到目标尺寸"""
+    old_width, old_height = im.size
+    ratio_w = new_width / old_width
+    ratio_h = new_height / old_height
+    if ratio_w < ratio_h:
+        new_size = (new_width, round(old_height * ratio_w))
     else:
-        raise ValueError("核心依赖类 StableDiffusion3TryOnPipeline 缺失，容器终止。")
-except Exception as init_err:
-    print(f"[FitDiT] ❌ 致命错误！未能在初始化阶段成功加载管线: {str(init_err)}")
-    pipeline = None
+        new_size = (round(old_width * ratio_h), new_height)
+
+    im_resized = im.resize(new_size, Image.LANCZOS)
+    pad_w = math.ceil((new_width - im_resized.width) / 2)
+    pad_h = math.ceil((new_height - im_resized.height) / 2)
+
+    canvas = Image.new("RGB", (new_width, new_height), pad_color)
+    canvas.paste(im_resized, (pad_w, pad_h))
+    return canvas, pad_w, pad_h
 
 
-# ----------------------------------------------------
-# 3. 图像编解码工具函数
-# ----------------------------------------------------
-def decode_base64_image(base64_str):
-    if "," in base64_str:
-        base64_str = base64_str.split(",")[-1]
-    image_data = base64.b64decode(base64_str)
-    return Image.open(BytesIO(image_data)).convert("RGB")
+def unpad_and_resize(padded_im, pad_w, pad_h, orig_w, orig_h):
+    """去除缩放时添加的边缘填充，并将图片精准恢复到最原始的尺寸"""
+    w, h = padded_im.size
+    cropped = padded_im.crop((pad_w, pad_h, w - pad_w, h - pad_h))
+    return cropped.resize((orig_w, orig_h), Image.LANCZOS)
 
 
-def encode_image_to_base64(image):
-    buffered = BytesIO()
-    image.save(buffered, format="JPEG", quality=95)
-    img_str = base64.b64encode(buffered.getvalue()).decode("utf-8")
-    return f"data:image/jpeg;base64,{img_str}"
+def resize_for_detection(img, target_size=768):
+    """等比例缩放图片，使较短的边等于目标尺寸（用于姿态与语义分割检测）"""
+    w, h = img.size
+    scale = target_size / min(w, h)
+    return img.resize((int(round(w * scale)), int(round(h * scale))), Image.LANCZOS)
 
 
-# ----------------------------------------------------
-# 4. RunPod 主监听事件
-# ----------------------------------------------------
-def handler(job):
-    try:
-        if pipeline is None:
-            return {"status": "failed", "error": "模型管线在容器初始化阶段加载失败，请检查网盘挂载。"}
+# ==============================================================================
+# 3. 模型加载逻辑 (冷启动时运行一次)
+# ==============================================================================
+pipeline = None
+dwprocessor = None
+parsing_model = None
 
-        job_input = job.get('input', {})
-        model_b64 = job_input.get('model_image')
-        garment_b64 = job_input.get('garment_image')
-        mask_b64 = job_input.get('mask_image')
 
-        prompt = job_input.get('prompt', "a person wearing the garment, fashion, photorealistic")
-        steps = int(job_input.get('steps', 30))
-        guidance_scale = float(job_input.get('guidance_scale', 3.5))
+def load_models():
+    global pipeline, dwprocessor, parsing_model
 
-        if not model_b64 or not garment_b64:
-            return {"status": "failed", "error": "必须提供有效参数: model_image 且 garment_image"}
+    print(f"[FitDiT] Loading models from {WEIGHTS_DIR} on {DEVICE} ...")
 
-        model_image = decode_base64_image(model_b64)
-        garment_image = decode_base64_image(garment_b64)
-        original_size = model_image.size
+    # 1. 验证核心权重文件是否存在
+    required = [
+        os.path.join(WEIGHTS_DIR, "transformer_garm"),
+        os.path.join(WEIGHTS_DIR, "transformer_vton"),
+        os.path.join(WEIGHTS_DIR, "vae"),
+        os.path.join(WEIGHTS_DIR, "pose_guider", "diffusion_pytorch_model.bin"),
+        os.path.join(WEIGHTS_DIR, "dwpose"),
+        os.path.join(WEIGHTS_DIR, "humanparsing"),
+    ]
+    missing = [p for p in required if not os.path.exists(p)]
+    if missing:
+        raise FileNotFoundError(
+            "Missing model files:\n" + "\n".join(f" - {p}" for p in missing)
+            + "\n\nRun download_weights.py first."
+        )
 
-        if mask_b64:
-            mask_image = decode_base64_image(mask_b64)
-        else:
-            mask_image = Image.new("RGB", original_size, (255, 255, 255))
-
-        target_size = (768, 1024)
-        model_img_resized = model_image.resize(target_size)
-        garment_img_resized = garment_image.resize(target_size)
-        mask_img_resized = mask_image.resize(target_size)
-
-        with torch.inference_mode():
-            output = pipeline(
-                prompt=prompt,
-                image=model_img_resized,
-                mask_image=mask_img_resized,
-                garment_image=garment_img_resized,
-                num_inference_steps=steps,
-                guidance_scale=guidance_scale
+    # 2. 验证 FitDiT 源码是否存在
+    for mod in ["gradio_sd3.py", "src/pipeline_stable_diffusion_3_tryon.py"]:
+        path = os.path.join(WEIGHTS_DIR, mod)
+        if not os.path.exists(path):
+            raise FileNotFoundError(
+                f"FitDiT source not found at {path}. "
+                f"Clone the repo into the weights directory:\n"
+                f" git clone https://github.com/BoyuanJiang/FitDiT.git {WEIGHTS_DIR}"
             )
 
-            if hasattr(output, "images") and len(output.images) > 0:
-                generated_img = output.images
-            elif isinstance(output, (list, tuple)) and len(output) > 0:
-                generated_img = output
-            else:
-                generated_img = output
+    weight_dtype = torch.float16 if USE_FP16 else torch.bfloat16
 
-            final_image = generated_img.resize(original_size)
+    # 3. 动态导入模型组件
+    from transformers import CLIPVisionModelWithProjection
+    from src.pipeline_stable_diffusion_3_tryon import StableDiffusion3TryOnPipeline
+    from src.transformer_sd3_garm import SD3Transformer2DModel as SD3Transformer2DModel_Garm
+    from src.transformer_sd3_vton import SD3Transformer2DModel as SD3Transformer2DModel_Vton
+    from src.pose_guider import PoseGuider
+    from preprocess.dwpose import DwposeDetector
+    from preprocess.humanparsing.run_parsing import Parsing
 
-        result_b64 = encode_image_to_base64(final_image)
+    # 4. 加载试衣网络分支
+    transformer_garm = SD3Transformer2DModel_Garm.from_pretrained(
+        os.path.join(WEIGHTS_DIR, "transformer_garm"), torch_dtype=weight_dtype
+    )
+    transformer_vton = SD3Transformer2DModel_Vton.from_pretrained(
+        os.path.join(WEIGHTS_DIR, "transformer_vton"), torch_dtype=weight_dtype
+    )
+
+    # 5. 初始化并加载姿态引导网络
+    pose_guider = PoseGuider(
+        conditioning_embedding_channels=1536,
+        conditioning_channels=3,
+        block_out_channels=(32, 64, 256, 512),
+    )
+    pose_guider.load_state_dict(
+        torch.load(os.path.join(WEIGHTS_DIR, "pose_guider", "diffusion_pytorch_model.bin"), map_location="cpu")
+    )
+    pose_guider.to(device=DEVICE, dtype=weight_dtype)
+
+    # 6. 加载视觉特征提取模型
+    image_encoder_large = CLIPVisionModelWithProjection.from_pretrained(
+        "openai/clip-vit-large-patch14", torch_dtype=weight_dtype
+    )
+    image_encoder_bigG = CLIPVisionModelWithProjection.from_pretrained(
+        "laion/CLIP-ViT-bigG-14-laion2B-39B-b16k", torch_dtype=weight_dtype
+    )
+    image_encoder_large.to(DEVICE)
+    image_encoder_bigG.to(DEVICE)
+
+    # 7. 组装 Stable Diffusion 3 试衣流水线
+    pipeline = StableDiffusion3TryOnPipeline.from_pretrained(
+        WEIGHTS_DIR,
+        torch_dtype=weight_dtype,
+        transformer_garm=transformer_garm,
+        transformer_vton=transformer_vton,
+        pose_guider=pose_guider,
+        image_encoder_large=image_encoder_large,
+        image_encoder_bigG=image_encoder_bigG,
+    )
+
+    # 处理显存优化策略
+    if CPU_OFFLOAD:
+        pipeline.enable_model_cpu_offload()
+        preprocess_device = "cpu"
+    else:
+        pipeline.to(DEVICE)
+        preprocess_device = DEVICE
+
+    # 8. 初始化前置姿态与分割检测模型
+    dwprocessor = DwposeDetector(model_root=WEIGHTS_DIR, device=preprocess_device)
+    parsing_model = Parsing(model_root=WEIGHTS_DIR, device=preprocess_device)
+
+    print("[FitDiT] All models loaded successfully.")
+
+
+# ==============================================================================
+# 4. 自动生成掩码与姿态 (当前端未传自定义 mask 时使用)
+# ==============================================================================
+def generate_mask_and_pose(person_img: Image.Image, category: str):
+    """提取人体姿态骨骼并进行语义分割，自动输出试衣遮罩"""
+    from src.utils_mask import get_mask_location
+
+    det_img = resize_for_detection(person_img)
+
+    # 估计人体姿态点
+    pose_img_bgr, _keypoints, _, candidate = dwprocessor(np.array(det_img)[:, :, ::-1])
+    candidate[candidate < 0] = 0
+    candidate = candidate[0]
+    candidate[:, 0] *= det_img.width
+    candidate[:, 1] *= det_img.height
+
+    pose_image = Image.fromarray(pose_img_bgr[:, :, ::-1])  # BGR 转换为 RGB
+
+    # 运行人体分割模型
+    model_parse, _ = parsing_model(det_img)
+
+    # 生成局部涂抹掩码 (Mask)
+    mask, mask_gray = get_mask_location(
+        category, model_parse, candidate,
+        model_parse.width, model_parse.height,
+        offset_top=0, offset_bottom=0, offset_left=0, offset_right=0,
+    )
+
+    # 将生成的图片分辨率还原回原图的大小尺寸
+    mask = mask.resize(person_img.size).convert("L")
+    mask_gray = mask_gray.resize(person_img.size).convert("L")
+    pose_image = pose_image.resize(person_img.size)
+
+    return mask, mask_gray, pose_image
+
+
+# ==============================================================================
+# 5. RunPod 请求监听与任务分发器
+# ==============================================================================
+def handler(job):
+    """处理 Serverless 调用的核心逻辑"""
+    try:
+        if pipeline is None:
+            return {"error": "Model pipeline not loaded. Check container logs."}
+
+        inp = job.get("input", {})
+
+        # 1. 验证必填字段
+        model_b64 = inp.get("model_image")
+        garment_b64 = inp.get("garment_image")
+        if not model_b64 or not garment_b64:
+            return {"error": "Both 'model_image' and 'garment_image' are required."}
+
+        # 2. 参数解析与安全拦截
+        raw_category = inp.get("category", "upper_body").lower().strip()
+        category = CATEGORY_MAP.get(raw_category)
+        if category is None:
+            return {
+                "error": f"Unknown category '{raw_category}'. Use: upper_body, lower_body, dresses, tops, bottoms, one-pieces."}
+
+        steps = int(inp.get("steps", 20))
+        guidance_scale = float(inp.get("guidance_scale", 2.0))
+        seed = int(inp.get("seed", -1))
+        num_images = min(max(int(inp.get("num_images", 1)), 1), 4)
+        resolution = inp.get("resolution", "768x1024")
+
+        if resolution not in ["768x1024", "1152x1536", "1536x2048"]:
+            return {"error": f"Invalid resolution '{resolution}'. Use: 768x1024, 1152x1536, 1536x2048."}
+
+        new_width, new_height = map(int, resolution.split("x"))
+
+        # 3. 解码输入的 Base64 图像
+        person_img = decode_base64_image(model_b64)
+        garment_img = decode_base64_image(garment_b64)
+        original_size = person_img.size  # 保存用户的原始尺寸 (W, H)
+
+        # 4. 获取控制遮罩与姿态图
+        mask_b64 = inp.get("mask_image")
+        if mask_b64:
+            # 如果用户自己上传了高级遮罩，直接解码使用
+            mask = decode_base64_image(mask_b64).convert("L")
+            det_img = resize_for_detection(person_img)
+            pose_img_bgr, _, _, _ = dwprocessor(np.array(det_img)[:, :, ::-1])
+            pose_image = Image.fromarray(pose_img_bgr[:, :, ::-1]).resize(person_img.size)
+        else:
+            # 否则，智能全自动分析生成
+            mask, _mask_gray, pose_image = generate_mask_and_pose(person_img, category)
+
+        # 5. 标准化缩放与填充 (对齐到模型可识别的底稿)
+        person_resized, pad_w, pad_h = pad_and_resize(person_img, new_width, new_height)
+        garment_resized, _, _ = pad_and_resize(garment_img, new_width, new_height)
+        mask_resized, _, _ = pad_and_resize(mask, new_width, new_height, pad_color=(0, 0, 0))
+        mask_resized = mask_resized.convert("L")
+        pose_resized, _, _ = pad_and_resize(pose_image, new_width, new_height, pad_color=(0, 0, 0))
+
+        # 6. 处理随机种子
+        if seed == -1:
+            seed = random.randint(0, 2147483647)
+
+        # 7. 开启闭环推理 (不计算梯度，省显存加速)
+        with torch.inference_mode():
+            results = pipeline(
+                height=new_height,
+                width=new_width,
+                guidance_scale=guidance_scale,
+                num_inference_steps=steps,
+                generator=torch.Generator("cpu").manual_seed(seed),
+                cloth_image=garment_resized,
+                model_image=person_resized,
+                mask=mask_resized,
+                pose_image=pose_resized,
+                num_images_per_prompt=num_images,
+            ).images
+
+        # 8. 图像后处理还原，打包回传
+        output_images = []
+        for img in results:
+            img = unpad_and_resize(img, pad_w, pad_h, original_size[0], original_size[1])
+            output_images.append(encode_image_to_base64(img))
+
         return {
             "status": "success",
-            "result_image": result_b64
+            "images": output_images,
+            "seed": seed,
         }
 
     except Exception as e:
-        return {
-            "status": "failed",
-            "error": f"推理服务内部异常终止: {str(e)}"
-        }
+        traceback.print_exc()
+        return {"error": str(e)}
 
 
+# ==============================================================================
+# 6. 容器守护进程入口
+# ==============================================================================
 if __name__ == "__main__":
+    try:
+        load_models()
+    except Exception:
+        traceback.print_exc()
+        print("[FitDiT] FATAL: Failed to load models. Container will accept jobs but return errors.")
+
+    # 启动 RunPod Serverless 服务循环
     runpod.serverless.start({"handler": handler})

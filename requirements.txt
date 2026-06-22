@@ -1,15 +1,15 @@
 runpod>=1.6.0
-
-# 修复核心：限制 huggingface_hub 的版本，确保 cached_download 接口存在
-huggingface_hub>=0.20.0,<0.24.0
-
-# 保持 diffusers 和 transformers 的稳定生态配对
-diffusers>=0.28.0,<0.29.0
-transformers>=4.40.0,<4.45.0
-accelerate>=0.29.0
-peft>=0.10.0
+diffusers==0.31.0
+transformers==4.39.3
+accelerate>=0.31.0
 safetensors>=0.4.0
-
+huggingface_hub>=0.23.0
+einops>=0.7.0
+opencv-python-headless>=4.8.0
 Pillow>=10.3.0
+onnxruntime-gpu==1.20.1
+scipy
+scikit-image>=0.21.0
 sentencepiece
 protobuf
+peft>=0.11.0
