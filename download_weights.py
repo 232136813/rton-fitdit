@@ -1,17 +1,3 @@
-"""
-Download FitDiT model weights, CLIP encoders, and source code to a local directory.
-
-Usage:
-    python download_weights.py --output /runpod-volume/FitDiT
-
-This script:
-    1. Clones the FitDiT GitHub repo (source code + preprocessing).
-    2. Downloads model weights from HuggingFace (BoyuanJiang/FitDiT).
-    3. Downloads CLIP vision encoders (ViT-Large + ViT-bigG).
-
-Total download size: ~9.7 GB.
-"""
-
 import argparse
 import os
 import subprocess
@@ -19,43 +5,29 @@ import sys
 
 
 def run(cmd, **kwargs):
-    print(f" $ {cmd}")
+    print(f"> {cmd}")
     subprocess.check_call(cmd, shell=True, **kwargs)
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Download FitDiT weights and source code."
-    )
-    parser.add_argument(
-        "--output",
-        type=str,
-        default="/runpod-volume/FitDiT",
-        help="Target directory for weights and source code.",
-    )
-    parser.add_argument(
-        "--hf-token",
-        type=str,
-        default=None,
-        help="HuggingFace token (if model is gated).",
-    )
+    parser = argparse.ArgumentParser(description="Download FitDiT weights and source code.")
+    parser.add_argument("--output", type=str, default="/runpod-volume/FitDiT",
+                        help="Target directory for weights and source code.")
+    parser.add_argument("--hf-token", type=str, default=None,
+                        help="HuggingFace token (if model is gated).")
     args = parser.parse_args()
 
     out = args.output
     os.makedirs(out, exist_ok=True)
 
     # Step 1: Clone FitDiT source code (for src/ and preprocess/ directories)
-    src_marker = os.path.join(
-        out, "src", "pipeline_stable_diffusion_3_tryon.py"
-    )
+    src_marker = os.path.join(out, "src", "pipeline_stable_diffusion_3_tryon.py")
     if not os.path.exists(src_marker):
         print("[1/2] Cloning FitDiT source code ...")
         tmp_clone = out + "_clone_tmp"
         if os.path.exists(tmp_clone):
             run(f"rm -rf {tmp_clone}")
-        run(
-            f"git clone --depth 1 https://github.com/BoyuanJiang/FitDiT.git {tmp_clone}"
-        )
+        run(f"git clone --depth 1 https://github.com/BoyuanJiang/FitDiT.git {tmp_clone}")
 
         # Copy source directories into the output (weights) directory
         for d in ["src", "preprocess", "examples"]:
@@ -70,87 +42,93 @@ def main():
             dst_path = os.path.join(out, f)
             if os.path.exists(src_path) and not os.path.exists(dst_path):
                 run(f"cp {src_path} {dst_path}")
-
         run(f"rm -rf {tmp_clone}")
-        print(" Source code ready.")
+        print("Source code ready.")
     else:
         print("[1/2] Source code already present, skipping clone.")
 
     # Step 2: Download model weights from HuggingFace
-    weight_marker = os.path.join(
-        out, "transformer_garm", "diffusion_pytorch_model.safetensors"
-    )
+    weight_marker = os.path.join(out, "transformer_garm", "diffusion_pytorch_model.safetensors")
     if not os.path.exists(weight_marker):
         print("[2/2] Downloading model weights from HuggingFace ...")
         token_arg = f"--token {args.hf_token}" if args.hf_token else ""
-
-        # Use huggingface-cli to download
         try:
-            run(
-                f"hf download BoyuanJiang/FitDiT --local-dir {out} {token_arg}"
+            run(f"huggingface-cli download BoyuanJiang/FitDiT --local-dir {out} {token_arg}")
+        except (subprocess.CalledProcessError, FileNotFoundError):
+            # Fallback: Use Python API (no hf CLI / no git-lfs needed)
+            print("\nhf CLI failed. Falling back to Python API ...")
+            from huggingface_hub import snapshot_download
+            snapshot_download(
+                "BoyuanJiang/FitDiT",
+                local_dir=out,
+                token=args.hf_token,
             )
-        except subprocess.CalledProcessError:
-            print("\n huggingface-cli failed. Trying git git-lfs clone ...")
-            run("git lfs install")
-            run(f"git clone https://huggingface.co/BoyuanJiang/FitDiT {out}_hf_tmp")
-
-            # Move weight directories
-            hf_tmp = out + "_hf_tmp"
-            for d in [
-                "transformer_garm",
-                "transformer_vton",
-                "vae",
-                "pose_guider",
-                "scheduler",
-                "dwpose",
-                "humanparsing",
-            ]:
-                src_path = os.path.join(hf_tmp, d)
-                dst_path = os.path.join(out, d)
-                if os.path.exists(src_path) and not os.path.exists(dst_path):
-                    run(f"mv {src_path} {dst_path}")
-
-            # Copy model_index.json
-            idx_src = os.path.join(hf_tmp, "model_index.json")
-            idx_dst = os.path.join(out, "model_index.json")
-            if os.path.exists(idx_src):
-                run(f"cp {idx_src} {idx_dst}")
-            run(f"rm -rf {hf_tmp}")
-
-        print(" Model weights ready.")
+        print("Model weights ready.")
     else:
         print("[2/2] Model weights already present, skipping download.")
 
     # Step 3: Download CLIP vision encoders
+    # NOTE: Only download the files needed by CLIPVisionModelWithProjection,
+    # NOT the full repo (laion/CLIP-ViT-bigG-14 full repo is ~30GB+).
     CLIP_MODELS = {
         "clip-vit-large-patch14": "openai/clip-vit-large-patch14",
         "clip-vit-bigG-14": "laion/CLIP-ViT-bigG-14-laion2B-39B-b160k",
     }
-    CLIP_FILES = [
-        'config.json',
-        'preprocessor_config.json',
-        'model.safetensors',
-        'pytorch_model.bin',
-    ]
+    # These are the only files CLIPVisionModelWithProjection.from_pretrained needs
+    CLIP_REQUIRED = ["config.json", "preprocessor_config.json"]
+    CLIP_WEIGHTS = ["model.safetensors", "pytorch_model.bin"]  # only need one
+
+    def download_hf_file(repo_id, filename, dest_dir, token=None):
+        """Download a single file, trying hf_hub_download first, then raw URL."""
+        dest_path = os.path.join(dest_dir, filename)
+        if os.path.exists(dest_path):
+            return True
+
+        # Method 1: huggingface_hub API
+        try:
+            from huggingface_hub import hf_hub_download
+            hf_hub_download(repo_id=repo_id, filename=filename,
+                            local_dir=dest_dir, token=token)
+            print(f"    downloaded {filename} via hf_hub")
+            return True
+        except Exception as e:
+            print(f"    hf_hub failed for {filename}: {e}")
+
+        # Method 2: direct URL download via urllib
+        try:
+            import urllib.request
+            url = f"https://huggingface.co/{repo_id}/resolve/main/{filename}"
+            print(f"    trying direct download: {url}")
+            urllib.request.urlretrieve(url, dest_path)
+            print(f"    downloaded {filename} via urllib")
+            return True
+        except Exception as e:
+            print(f"    urllib failed for {filename}: {e}")
+
+        # Method 3: wget/curl
+        try:
+            url = f"https://huggingface.co/{repo_id}/resolve/main/{filename}"
+            run(f"wget -q -O {dest_path} {url}")
+            print(f"    downloaded {filename} via wget")
+            return True
+        except Exception:
+            pass
+
+        return False
+
     for local_name, hf_repo in CLIP_MODELS.items():
         clip_dir = os.path.join(out, local_name)
         marker = os.path.join(clip_dir, "config.json")
         if not os.path.exists(marker):
-            print(f"[3/3] Downloading {hf_repo} ...")
+            print(f"[3/3] Downloading {hf_repo} (vision encoder only) ...")
             os.makedirs(clip_dir, exist_ok=True)
-            from huggingface_hub import hf_hub_download
-            for fname in CLIP_FILES:
-                try:
-                    hf_hub_download(
-                        repo_id=hf_repo,
-                        filename=fname,
-                        local_dir=clip_dir,
-                        token=args.hf_token,
-                    )
-                    print(f" downloading {fname}")
-                except Exception:
-                    pass
-            print(f" {local_name} ready.")
+            for fname in CLIP_REQUIRED:
+                download_hf_file(hf_repo, fname, clip_dir, args.hf_token)
+            # Download weights - only need one of safetensors / bin
+            for fname in CLIP_WEIGHTS:
+                if download_hf_file(hf_repo, fname, clip_dir, args.hf_token):
+                    break
+            print(f"    {local_name} done.")
         else:
             print(f"[3/3] {local_name} already present, skipping.")
 
@@ -170,6 +148,7 @@ def main():
         "clip-vit-large-patch14/config.json",
         "clip-vit-bigG-14/config.json",
     ]
+
     all_ok = True
     for f in required:
         path = os.path.join(out, f)
@@ -179,9 +158,9 @@ def main():
         print(f"[{status}] {f}")
 
     if all_ok:
-        print(f"\nAll files ready at {out}")
+        print(f"\nAll files ready at {out}!")
     else:
-        print(f"\nSome files are missing. Check the output above.")
+        print("\nSome files are missing. Check the output above.")
         sys.exit(1)
 
 
