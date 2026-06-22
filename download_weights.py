@@ -124,7 +124,7 @@ def main():
     # Step 3: Download CLIP vision encoders
     CLIP_MODELS = {
         "clip-vit-large-patch14": "openai/clip-vit-large-patch14",
-        "clip-vit-bigG-14": "laion/CLIP-ViT-bigG-14-laion2B-s39B-b160k",
+        "clip-vit-bigG-14": "laion/CLIP-ViT-bigG-14-laion2B-39B-b160k",
     }
     for local_name, hf_repo in CLIP_MODELS.items():
         clip_dir = os.path.join(out, local_name)
