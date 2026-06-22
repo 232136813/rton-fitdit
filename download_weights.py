@@ -3,11 +3,12 @@ import os
 import subprocess
 import sys
 
+# Disable hf_transfer to avoid "hf_transfer package not available" errors
+os.environ["HF_HUB_ENABLE_HF_TRANSFER"] = "0"
 
 def run(cmd, **kwargs):
     print(f"> {cmd}")
     subprocess.check_call(cmd, shell=True, **kwargs)
-
 
 def main():
     parser = argparse.ArgumentParser(description="Download FitDiT weights and source code.")
@@ -56,7 +57,7 @@ def main():
             run(f"huggingface-cli download BoyuanJiang/FitDiT --local-dir {out} {token_arg}")
         except (subprocess.CalledProcessError, FileNotFoundError):
             # Fallback: Use Python API (no hf CLI / no git-lfs needed)
-            print("\nhf CLI failed. Falling back to Python API ...")
+            print("\nhuggingface-cli failed. Falling back to Python API ...")
             from huggingface_hub import snapshot_download
             snapshot_download(
                 "BoyuanJiang/FitDiT",
@@ -71,17 +72,32 @@ def main():
     # NOTE: Only download the files needed by CLIPVisionModelWithProjection,
     # NOT the full repo (laion/CLIP-ViT-bigG-14 full repo is ~30GB+).
     CLIP_MODELS = {
-        "clip-vit-large-patch14": "openai/clip-vit-large-patch14",
-        "clip-vit-bigG-14": "laion/CLIP-ViT-bigG-14-laion2B-39B-b160k",
+        "clip-vit-large-patch14": {
+            "repo": "openai/clip-vit-large-patch14",
+            "files": [
+                "config.json",
+                "preprocessor_config.json",
+                "model.safetensors",
+            ],
+        },
+        "clip-vit-bigG-14": {
+            "repo": "laion/CLIP-ViT-bigG-14-laion2B-39B-b160k",
+            # bigG weights are sharded - no single model.safetensors / pytorch_model.bin
+            "files": [
+                "config.json",
+                "preprocessor_config.json",
+                "pytorch_model.bin.index.json",
+                "pytorch_model-00001-of-00002.bin",
+                "pytorch_model-00002-of-00002.bin",
+            ],
+        },
     }
-    # These are the only files CLIPVisionModelWithProjection.from_pretrained needs
-    CLIP_REQUIRED = ["config.json", "preprocessor_config.json"]
-    CLIP_WEIGHTS = ["model.safetensors", "pytorch_model.bin"]  # only need one
 
     def download_hf_file(repo_id, filename, dest_dir, token=None):
         """Download a single file, trying hf_hub_download first, then raw URL."""
         dest_path = os.path.join(dest_dir, filename)
         if os.path.exists(dest_path):
+            print(f"  {filename} already exists, skipping.")
             return True
 
         # Method 1: huggingface_hub API
@@ -89,46 +105,43 @@ def main():
             from huggingface_hub import hf_hub_download
             hf_hub_download(repo_id=repo_id, filename=filename,
                             local_dir=dest_dir, token=token)
-            print(f"    downloaded {filename} via hf_hub")
+            print(f"  downloaded {filename} (via hf_hub)")
             return True
         except Exception as e:
-            print(f"    hf_hub failed for {filename}: {e}")
+            print(f"  hf_hub failed for {filename}: {e}")
 
         # Method 2: direct URL download via urllib
         try:
             import urllib.request
             url = f"https://huggingface.co/{repo_id}/resolve/main/{filename}"
-            print(f"    trying direct download: {url}")
+            print(f"  trying direct download: {url}")
             urllib.request.urlretrieve(url, dest_path)
-            print(f"    downloaded {filename} via urllib")
+            print(f"  downloaded {filename} (via urllib)")
             return True
         except Exception as e:
-            print(f"    urllib failed for {filename}: {e}")
+            print(f"  urllib failed for {filename}: {e}")
 
-        # Method 3: wget/curl
+        # Method 3: wget
         try:
             url = f"https://huggingface.co/{repo_id}/resolve/main/{filename}"
-            run(f"wget -q -O {dest_path} {url}")
-            print(f"    downloaded {filename} via wget")
+            run(f"wget -q -O '{dest_path}' '{url}'")
+            print(f"  downloaded {filename} (via wget)")
             return True
         except Exception:
             pass
 
+        print(f"  FAILED to download {filename}")
         return False
 
-    for local_name, hf_repo in CLIP_MODELS.items():
+    for local_name, info in CLIP_MODELS.items():
         clip_dir = os.path.join(out, local_name)
         marker = os.path.join(clip_dir, "config.json")
         if not os.path.exists(marker):
-            print(f"[3/3] Downloading {hf_repo} (vision encoder only) ...")
+            print(f"[3/3] Downloading {info['repo']} ...")
             os.makedirs(clip_dir, exist_ok=True)
-            for fname in CLIP_REQUIRED:
-                download_hf_file(hf_repo, fname, clip_dir, args.hf_token)
-            # Download weights - only need one of safetensors / bin
-            for fname in CLIP_WEIGHTS:
-                if download_hf_file(hf_repo, fname, clip_dir, args.hf_token):
-                    break
-            print(f"    {local_name} done.")
+            for fname in info["files"]:
+                download_hf_file(info["repo"], fname, clip_dir, args.hf_token)
+            print(f"  {local_name} done.")
         else:
             print(f"[3/3] {local_name} already present, skipping.")
 
@@ -146,7 +159,9 @@ def main():
         "humanparsing/parsing_atr.onnx",
         "model_index.json",
         "clip-vit-large-patch14/config.json",
+        "clip-vit-large-patch14/model.safetensors",
         "clip-vit-bigG-14/config.json",
+        "clip-vit-bigG-14/pytorch_model-00001-of-00002.bin",
     ]
 
     all_ok = True
@@ -162,7 +177,6 @@ def main():
     else:
         print("\nSome files are missing. Check the output above.")
         sys.exit(1)
-
 
 if __name__ == "__main__":
     main()
