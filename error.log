@@ -1,22 +1,153 @@
-
-Traceback (most recent call last):
-  File "/app/handler.py", line 339, in <module>
-    load_models()
-  File "/app/handler.py", line 145, in load_models
-    from preprocess.dwpose import DwposeDetector
-ImportError: cannot import name 'DwposeDetector' from 'preprocess.dwpose' (/runpod-volume/FitDiT/preprocess/dwpose/__init__.py)
-[FitDiT] FATAL: Failed to load models. Container will accept jobs but return errors.
---- Starting Serverless Worker |  Version 1.9.1 ---
-{"requestId": null, "message": "Running 7 fitness check(s)...", "level": "INFO"}
-{"requestId": null, "message": "GPU binary test passed: 1 GPU(s) healthy (CUDA 13.0)", "level": "INFO"}
-{"requestId": null, "message": "Memory check passed: 165.92GB available (of 187.82GB total)", "level": "INFO"}
-{"requestId": null, "message": "Disk space check passed: 19.98GB free (99.9% available)", "level": "INFO"}
-{"requestId": null, "message": "Network connectivity passed: Connected to 8.8.8.8 (22ms)", "level": "INFO"}
-{"requestId": null, "message": "CUDA version check passed: 13.0 (minimum: 11.8)", "level": "INFO"}
-{"requestId": null, "message": "CUDA initialization passed: 1 device(s) initialized successfully", "level": "INFO"}
-{"requestId": null, "message": "GPU compute benchmark passed: Matrix multiply completed in 97ms", "level": "INFO"}
-{"requestId": null, "message": "All fitness checks passed. (734.82ms)", "level": "INFO"}
-{"requestId": null, "message": "Jobs in queue: 1", "level": "INFO"}
-{"requestId": null, "message": "Jobs in progress: 1", "level": "INFO"}
-{"requestId": "c9babd5a-1034-48c3-bacd-744e329349ea-u2", "message": "Started.", "level": "INFO"}
-{"requestId": "c9babd5a-1034-48c3-bacd-744e329349ea-u2", "message": "Finished.", "level": "INFO"}
+2026-06-23 21:20:00.446 | info | ucx98j1emwwzng | Traceback (most recent call last):\n
+2026-06-23 21:20:00.446 | info | ucx98j1emwwzng |   File "/app/handler.py", line 339, in <module>\n
+2026-06-23 21:20:00.446 | info | ucx98j1emwwzng |     load_models()\n
+2026-06-23 21:20:00.446 | info | ucx98j1emwwzng |   File "/app/handler.py", line 145, in load_models\n
+2026-06-23 21:20:00.446 | info | ucx98j1emwwzng |     from preprocess.dwpose import DwposeDetector\n
+2026-06-23 21:20:00.446 | info | ucx98j1emwwzng |   File "/runpod-volume/FitDiT/preprocess/dwpose/__init__.py", line 12, in <module>\n
+2026-06-23 21:20:00.446 | info | ucx98j1emwwzng |     from . import util\n
+2026-06-23 21:20:00.446 | info | ucx98j1emwwzng |   File "/runpod-volume/FitDiT/preprocess/dwpose/util.py", line 3, in <module>\n
+2026-06-23 21:20:00.447 | info | ucx98j1emwwzng |     import matplotlib\n
+2026-06-23 21:20:00.447 | info | ucx98j1emwwzng | ModuleNotFoundError: No module named 'matplotlib'\n
+2026-06-23 21:20:00.447 | error | ucx98j1emwwzng | [FitDiT] FATAL: Failed to load models. Container will accept jobs but return errors.\n
+2026-06-23 21:20:00.447 | info | ucx98j1emwwzng | --- Starting Serverless Worker |  Version 1.9.1 ---\n
+2026-06-23 21:20:00.447 | info | ucx98j1emwwzng | Running 7 fitness check(s)...
+2026-06-23 21:20:00.447 | info | ucx98j1emwwzng | GPU binary test passed: 1 GPU(s) healthy (CUDA 12.4)
+2026-06-23 21:20:00.447 | info | ucx98j1emwwzng | Memory check passed: 211.65GB available (of 251.55GB total)
+2026-06-23 21:20:00.447 | info | ucx98j1emwwzng | Disk space check passed: 19.98GB free (99.9% available)
+2026-06-23 21:20:00.447 | info | ucx98j1emwwzng | Network connectivity passed: Connected to 8.8.8.8 (25ms)
+2026-06-23 21:20:00.447 | info | ucx98j1emwwzng | CUDA version check passed: 12.4 (minimum: 11.8)
+2026-06-23 21:20:00.447 | info | ucx98j1emwwzng | CUDA initialization passed: 1 device(s) initialized successfully
+2026-06-23 21:20:00.447 | info | ucx98j1emwwzng | GPU compute benchmark passed: Matrix multiply completed in 85ms
+2026-06-23 21:20:00.447 | info | ucx98j1emwwzng | All fitness checks passed. (932.01ms)
+2026-06-23 21:20:00.447 | info | ucx98j1emwwzng | Jobs in queue: 1
+2026-06-23 21:20:00.447 | info | ucx98j1emwwzng | Jobs in progress: 1
+2026-06-23 21:20:00.447 | info | ucx98j1emwwzng | Started.
+2026-06-23 21:20:00.447 | info | ucx98j1emwwzng | Finished.
+2026-06-23 21:49:08.246 | info | 3fhhsrtsdkxms5 | Traceback (most recent call last):\n
+2026-06-23 21:49:08.246 | info | 3fhhsrtsdkxms5 |   File "/app/handler.py", line 339, in <module>\n
+2026-06-23 21:49:08.246 | info | 3fhhsrtsdkxms5 |     load_models()\n
+2026-06-23 21:49:08.246 | info | 3fhhsrtsdkxms5 |   File "/app/handler.py", line 145, in load_models\n
+2026-06-23 21:49:08.246 | info | 3fhhsrtsdkxms5 |     from preprocess.dwpose import DwposeDetector\n
+2026-06-23 21:49:08.246 | info | 3fhhsrtsdkxms5 |   File "/runpod-volume/FitDiT/preprocess/dwpose/__init__.py", line 12, in <module>\n
+2026-06-23 21:49:08.246 | info | 3fhhsrtsdkxms5 |     from . import util\n
+2026-06-23 21:49:08.246 | info | 3fhhsrtsdkxms5 |   File "/runpod-volume/FitDiT/preprocess/dwpose/util.py", line 3, in <module>\n
+2026-06-23 21:49:08.246 | info | 3fhhsrtsdkxms5 |     import matplotlib\n
+2026-06-23 21:49:08.246 | info | 3fhhsrtsdkxms5 | ModuleNotFoundError: No module named 'matplotlib'\n
+2026-06-23 21:49:08.246 | error | 3fhhsrtsdkxms5 | [FitDiT] FATAL: Failed to load models. Container will accept jobs but return errors.\n
+2026-06-23 21:49:08.246 | info | 3fhhsrtsdkxms5 | --- Starting Serverless Worker |  Version 1.9.1 ---\n
+2026-06-23 21:49:08.246 | info | 3fhhsrtsdkxms5 | Running 7 fitness check(s)...
+2026-06-23 21:49:08.246 | info | 3fhhsrtsdkxms5 | GPU binary test passed: 1 GPU(s) healthy (CUDA 12.4)
+2026-06-23 21:49:08.246 | info | 3fhhsrtsdkxms5 | Memory check passed: 234.06GB available (of 251.55GB total)
+2026-06-23 21:49:08.246 | info | 3fhhsrtsdkxms5 | Disk space check passed: 19.98GB free (99.9% available)
+2026-06-23 21:49:08.246 | info | 3fhhsrtsdkxms5 | Network connectivity passed: Connected to 8.8.8.8 (24ms)
+2026-06-23 21:49:08.246 | info | 3fhhsrtsdkxms5 | CUDA version check passed: 12.4 (minimum: 11.8)
+2026-06-23 21:49:08.246 | info | 3fhhsrtsdkxms5 | CUDA initialization passed: 1 device(s) initialized successfully
+2026-06-23 21:49:08.246 | info | 3fhhsrtsdkxms5 | GPU compute benchmark passed: Matrix multiply completed in 107ms
+2026-06-23 21:49:08.246 | info | 3fhhsrtsdkxms5 | All fitness checks passed. (954.86ms)
+2026-06-23 21:49:08.246 | info | 3fhhsrtsdkxms5 | Jobs in queue: 1
+2026-06-23 21:49:08.246 | info | 3fhhsrtsdkxms5 | Jobs in progress: 1
+2026-06-23 21:49:08.246 | info | 3fhhsrtsdkxms5 | Started.
+2026-06-23 21:49:08.246 | info | 3fhhsrtsdkxms5 | Finished.
+2026-06-23 22:03:37.818 | info | bg3l8a2ntdr18j | Traceback (most recent call last):\n
+2026-06-23 22:03:37.818 | info | bg3l8a2ntdr18j |   File "/app/handler.py", line 339, in <module>\n
+2026-06-23 22:03:37.818 | info | bg3l8a2ntdr18j |     load_models()\n
+2026-06-23 22:03:37.818 | info | bg3l8a2ntdr18j |   File "/app/handler.py", line 145, in load_models\n
+2026-06-23 22:03:37.818 | info | bg3l8a2ntdr18j |     from preprocess.dwpose import DwposeDetector\n
+2026-06-23 22:03:37.818 | info | bg3l8a2ntdr18j | ImportError: cannot import name 'DwposeDetector' from 'preprocess.dwpose' (/runpod-volume/FitDiT/preprocess/dwpose/__init__.py)\n
+2026-06-23 22:03:37.818 | error | bg3l8a2ntdr18j | [FitDiT] FATAL: Failed to load models. Container will accept jobs but return errors.\n
+2026-06-23 22:03:37.818 | info | bg3l8a2ntdr18j | --- Starting Serverless Worker |  Version 1.9.1 ---\n
+2026-06-23 22:03:37.818 | info | bg3l8a2ntdr18j | Running 7 fitness check(s)...
+2026-06-23 22:03:37.818 | info | bg3l8a2ntdr18j | GPU binary test passed: 1 GPU(s) healthy (CUDA 13.0)
+2026-06-23 22:03:37.818 | info | bg3l8a2ntdr18j | Memory check passed: 165.92GB available (of 187.82GB total)
+2026-06-23 22:03:37.818 | info | bg3l8a2ntdr18j | Disk space check passed: 19.98GB free (99.9% available)
+2026-06-23 22:03:37.818 | info | bg3l8a2ntdr18j | Network connectivity passed: Connected to 8.8.8.8 (22ms)
+2026-06-23 22:03:37.818 | info | bg3l8a2ntdr18j | CUDA version check passed: 13.0 (minimum: 11.8)
+2026-06-23 22:03:37.818 | info | bg3l8a2ntdr18j | CUDA initialization passed: 1 device(s) initialized successfully
+2026-06-23 22:03:37.818 | info | bg3l8a2ntdr18j | GPU compute benchmark passed: Matrix multiply completed in 97ms
+2026-06-23 22:03:37.818 | info | bg3l8a2ntdr18j | All fitness checks passed. (734.82ms)
+2026-06-23 22:03:37.818 | info | bg3l8a2ntdr18j | Jobs in queue: 1
+2026-06-23 22:03:37.818 | info | bg3l8a2ntdr18j | Jobs in progress: 1
+2026-06-23 22:03:37.818 | info | bg3l8a2ntdr18j | Started.
+2026-06-23 22:03:37.818 | info | bg3l8a2ntdr18j | Finished.
+2026-06-23 22:16:10.051 | info | 12b006z5rbmd8l | [FitDiT] Loading models from /runpod-volume/FitDiT on cuda ...\n
+2026-06-23 22:17:26.347 | info | 12b006z5rbmd8l | /app/handler.py:163: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.\n
+2026-06-23 22:17:51.788 | info | 12b006z5rbmd8l |   torch.load(os.path.join(WEIGHTS_DIR, "pose_guider", "diffusion_pytorch_model.bin"), map_location="cpu")\n
+2026-06-23 22:17:51.788 | info | 12b006z5rbmd8l | Traceback (most recent call last):\n
+2026-06-23 22:17:52.079 | info | 12b006z5rbmd8l |   File "/opt/conda/lib/python3.11/site-packages/huggingface_hub/utils/_http.py", line 403, in hf_raise_for_status\n
+2026-06-23 22:17:52.079 | info | 12b006z5rbmd8l |     response.raise_for_status()\n
+2026-06-23 22:17:52.079 | info | 12b006z5rbmd8l |   File "/opt/conda/lib/python3.11/site-packages/requests/models.py", line 1024, in raise_for_status\n
+2026-06-23 22:17:52.079 | info | 12b006z5rbmd8l |     raise HTTPError(http_error_msg, response=self)\n
+2026-06-23 22:17:52.079 | info | 12b006z5rbmd8l | requests.exceptions.HTTPError: 401 Client Error: Unauthorized for url: https://huggingface.co/laion/CLIP-ViT-bigG-14-laion2B-39B-b16k/resolve/main/config.json\n
+2026-06-23 22:17:52.079 | info | 12b006z5rbmd8l | \n
+2026-06-23 22:17:52.079 | info | 12b006z5rbmd8l | The above exception was the direct cause of the following exception:\n
+2026-06-23 22:17:52.079 | info | 12b006z5rbmd8l | \n
+2026-06-23 22:17:52.079 | info | 12b006z5rbmd8l | Traceback (most recent call last):\n
+2026-06-23 22:17:52.079 | info | 12b006z5rbmd8l |   File "/opt/conda/lib/python3.11/site-packages/transformers/utils/hub.py", line 402, in cached_file\n
+2026-06-23 22:17:52.079 | info | 12b006z5rbmd8l |     resolved_file = hf_hub_download(\n
+2026-06-23 22:17:52.079 | info | 12b006z5rbmd8l |                     ^^^^^^^^^^^^^^^^\n
+2026-06-23 22:17:52.079 | info | 12b006z5rbmd8l |   File "/opt/conda/lib/python3.11/site-packages/huggingface_hub/utils/_validators.py", line 114, in _inner_fn\n
+2026-06-23 22:17:52.079 | info | 12b006z5rbmd8l |     return fn(*args, **kwargs)\n
+2026-06-23 22:17:52.079 | info | 12b006z5rbmd8l |            ^^^^^^^^^^^^^^^^^^^\n
+2026-06-23 22:17:52.079 | info | 12b006z5rbmd8l |   File "/opt/conda/lib/python3.11/site-packages/huggingface_hub/file_download.py", line 1014, in hf_hub_download\n
+2026-06-23 22:17:52.079 | info | 12b006z5rbmd8l |     return _hf_hub_download_to_cache_dir(\n
+2026-06-23 22:17:52.079 | info | 12b006z5rbmd8l |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n
+2026-06-23 22:17:52.079 | info | 12b006z5rbmd8l |   File "/opt/conda/lib/python3.11/site-packages/huggingface_hub/file_download.py", line 1121, in _hf_hub_download_to_cache_dir\n
+2026-06-23 22:17:52.079 | info | 12b006z5rbmd8l |     _raise_on_head_call_error(head_call_error, force_download, local_files_only)\n
+2026-06-23 22:17:52.079 | info | 12b006z5rbmd8l |   File "/opt/conda/lib/python3.11/site-packages/huggingface_hub/file_download.py", line 1662, in _raise_on_head_call_error\n
+2026-06-23 22:17:52.079 | info | 12b006z5rbmd8l |     raise head_call_error\n
+2026-06-23 22:17:52.079 | info | 12b006z5rbmd8l |   File "/opt/conda/lib/python3.11/site-packages/huggingface_hub/file_download.py", line 1550, in _get_metadata_or_catch_error\n
+2026-06-23 22:17:52.080 | info | 12b006z5rbmd8l |     metadata = get_hf_file_metadata(\n
+2026-06-23 22:17:52.080 | info | 12b006z5rbmd8l |                ^^^^^^^^^^^^^^^^^^^^^\n
+2026-06-23 22:17:52.080 | info | 12b006z5rbmd8l |   File "/opt/conda/lib/python3.11/site-packages/huggingface_hub/utils/_validators.py", line 114, in _inner_fn\n
+2026-06-23 22:17:52.080 | info | 12b006z5rbmd8l |     return fn(*args, **kwargs)\n
+2026-06-23 22:17:52.080 | info | 12b006z5rbmd8l |            ^^^^^^^^^^^^^^^^^^^\n
+2026-06-23 22:17:52.080 | info | 12b006z5rbmd8l |   File "/opt/conda/lib/python3.11/site-packages/huggingface_hub/file_download.py", line 1467, in get_hf_file_metadata\n
+2026-06-23 22:17:52.080 | info | 12b006z5rbmd8l |     r = _request_wrapper(\n
+2026-06-23 22:17:52.080 | info | 12b006z5rbmd8l |         ^^^^^^^^^^^^^^^^^\n
+2026-06-23 22:17:52.080 | info | 12b006z5rbmd8l |   File "/opt/conda/lib/python3.11/site-packages/huggingface_hub/file_download.py", line 283, in _request_wrapper\n
+2026-06-23 22:17:52.080 | info | 12b006z5rbmd8l |     response = _request_wrapper(\n
+2026-06-23 22:17:52.080 | info | 12b006z5rbmd8l |                ^^^^^^^^^^^^^^^^^\n
+2026-06-23 22:17:52.080 | info | 12b006z5rbmd8l |   File "/opt/conda/lib/python3.11/site-packages/huggingface_hub/file_download.py", line 307, in _request_wrapper\n
+2026-06-23 22:17:52.080 | info | 12b006z5rbmd8l |     hf_raise_for_status(response)\n
+2026-06-23 22:17:52.080 | info | 12b006z5rbmd8l |   File "/opt/conda/lib/python3.11/site-packages/huggingface_hub/utils/_http.py", line 453, in hf_raise_for_status\n
+2026-06-23 22:17:52.080 | info | 12b006z5rbmd8l |     raise _format(RepositoryNotFoundError, message, response) from e\n
+2026-06-23 22:17:52.080 | info | 12b006z5rbmd8l | huggingface_hub.errors.RepositoryNotFoundError: 401 Client Error. (Request ID: Root=1-6a3a958f-178de18f0dfb61d11e2442ec;de9967cf-eb44-4e17-8f51-c46b53cb02db)\n
+2026-06-23 22:17:52.080 | info | 12b006z5rbmd8l | \n
+2026-06-23 22:17:52.080 | info | 12b006z5rbmd8l | Repository Not Found for url: https://huggingface.co/laion/CLIP-ViT-bigG-14-laion2B-39B-b16k/resolve/main/config.json.\n
+2026-06-23 22:17:52.080 | info | 12b006z5rbmd8l | Please make sure you specified the correct `repo_id` and `repo_type`.\n
+2026-06-23 22:17:52.080 | info | 12b006z5rbmd8l | If you are trying to access a private or gated repo, make sure you are authenticated. For more details, see https://huggingface.co/docs/huggingface_hub/authentication\n
+2026-06-23 22:17:52.080 | info | 12b006z5rbmd8l | Invalid username or password.\n
+2026-06-23 22:17:52.080 | info | 12b006z5rbmd8l | \n
+2026-06-23 22:17:52.080 | info | 12b006z5rbmd8l | The above exception was the direct cause of the following exception:\n
+2026-06-23 22:17:52.080 | info | 12b006z5rbmd8l | \n
+2026-06-23 22:17:52.080 | info | 12b006z5rbmd8l | Traceback (most recent call last):\n
+2026-06-23 22:17:52.080 | info | 12b006z5rbmd8l |   File "/app/handler.py", line 339, in <module>\n
+2026-06-23 22:17:52.080 | info | 12b006z5rbmd8l |     load_models()\n
+2026-06-23 22:17:52.081 | info | 12b006z5rbmd8l |   File "/app/handler.py", line 171, in load_models\n
+2026-06-23 22:17:52.081 | info | 12b006z5rbmd8l |     image_encoder_bigG = CLIPVisionModelWithProjection.from_pretrained(\n
+2026-06-23 22:17:52.081 | info | 12b006z5rbmd8l |                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n
+2026-06-23 22:17:52.081 | info | 12b006z5rbmd8l |   File "/opt/conda/lib/python3.11/site-packages/transformers/modeling_utils.py", line 3225, in from_pretrained\n
+2026-06-23 22:17:52.081 | info | 12b006z5rbmd8l |     resolved_config_file = cached_file(\n
+2026-06-23 22:17:52.081 | info | 12b006z5rbmd8l |                            ^^^^^^^^^^^^\n
+2026-06-23 22:17:52.081 | error | 12b006z5rbmd8l | [FitDiT] FATAL: Failed to load models. Container will accept jobs but return errors.\n
+2026-06-23 22:17:52.081 | info | 12b006z5rbmd8l | --- Starting Serverless Worker |  Version 1.9.1 ---\n
+2026-06-23 22:17:52.081 | info | 12b006z5rbmd8l |   File "/opt/conda/lib/python3.11/site-packages/transformers/utils/hub.py", line 425, in cached_file\n
+2026-06-23 22:17:52.081 | info | 12b006z5rbmd8l |     raise EnvironmentError(\n
+2026-06-23 22:17:52.081 | info | 12b006z5rbmd8l | OSError: laion/CLIP-ViT-bigG-14-laion2B-39B-b16k is not a local folder and is not a valid model identifier listed on 'https://huggingface.co/models'\n
+2026-06-23 22:17:52.081 | info | 12b006z5rbmd8l | If this is a private repository, make sure to pass a token having permission to this repo either by logging in with `huggingface-cli login` or by passing `token=<your_token>`\n
+2026-06-23 22:17:52.081 | info | 12b006z5rbmd8l | Running 7 fitness check(s)...
+2026-06-23 22:17:52.245 | info | 12b006z5rbmd8l | GPU binary test passed: 1 GPU(s) healthy (CUDA 12.4)
+2026-06-23 22:17:52.359 | info | 12b006z5rbmd8l | Memory check passed: 192.94GB available (of 251.55GB total)
+2026-06-23 22:17:52.504 | info | 12b006z5rbmd8l | Disk space check passed: 18.39GB free (92.0% available)
+2026-06-23 22:17:52.504 | info | 12b006z5rbmd8l | Network connectivity passed: Connected to 8.8.8.8 (19ms)
+2026-06-23 22:17:52.504 | info | 12b006z5rbmd8l | CUDA version check passed: 12.4 (minimum: 11.8)
+2026-06-23 22:17:52.664 | info | 12b006z5rbmd8l | CUDA initialization passed: 1 device(s) initialized successfully
+2026-06-23 22:17:52.876 | info | 12b006z5rbmd8l | GPU compute benchmark passed: Matrix multiply completed in 88ms
+2026-06-23 22:17:53.613 | info | 12b006z5rbmd8l | All fitness checks passed. (797.58ms)
+2026-06-23 22:17:53.613 | info | 12b006z5rbmd8l | Jobs in queue: 1
+2026-06-23 22:17:53.908 | info | 12b006z5rbmd8l | Jobs in progress: 1
+2026-06-23 22:17:53.908 | info | 12b006z5rbmd8l | Started.
+2026-06-23 22:17:53.908 | info | 12b006z5rbmd8l | Finished.
+2026-06-23 22:17:54.937 | info | 12b006z5rbmd8l | Jobs in queue: 1
+2026-06-23 22:17:55.295 | info | 12b006z5rbmd8l | Started.
+2026-06-23 22:17:55.295 | info | 12b006z5rbmd8l | Finished.
