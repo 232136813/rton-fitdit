@@ -1,39 +1,41 @@
-2026-06-23T15:00:42.612632362Z [FitDiT] Loading models from /runpod-volume/FitDiT on cuda ...
-2026-06-23T15:01:30.567580800Z /app/handler.py:163: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
-2026-06-23T15:01:30.567604064Z   torch.load(os.path.join(WEIGHTS_DIR, "pose_guider", "diffusion_pytorch_model.bin"), map_location="cpu")
-2026-06-23T15:01:59.736000885Z
-Loading checkpoint shards:   0%|          | 0/2 [00:00<?, ?it/s]
-Loading checkpoint shards:  50%|█████     | 1/2 [00:22<00:22, 22.53s/it]
-Loading checkpoint shards: 100%|██████████| 2/2 [00:23<00:00,  9.69s/it]
-Loading checkpoint shards: 100%|██████████| 2/2 [00:23<00:00, 11.62s/it]
-2026-06-23T15:02:00.404445223Z
-Loading pipeline components...:   0%|          | 0/6 [00:00<?, ?it/s]
-Loading pipeline components...:  33%|███▎      | 2/6 [00:00<00:00,  9.58it/s]
-Loading pipeline components...: 100%|██████████| 6/6 [00:00<00:00, 25.93it/s]
-2026-06-23T15:02:02.042535449Z [1;31m2026-06-23 15:02:02.042452394 [E:onnxruntime:Default, provider_bridge_ort.cc:1862 TryGetProviderInfo_CUDA] /onnxruntime_src/onnxruntime/core/session/provider_bridge_ort.cc:1539 onnxruntime::Provider& onnxruntime::ProviderLibrary::Get() [ONNXRuntimeError] : 1 : FAIL : Failed to load library libonnxruntime_providers_cuda.so with error: libcudnn_adv.so.9: cannot open shared object file: No such file or directory
-2026-06-23T15:02:02.042563621Z [m
-2026-06-23T15:02:02.042565525Z [0;93m2026-06-23 15:02:02.042469436 [W:onnxruntime:Default, onnxruntime_pybind_state.cc:993 CreateExecutionProviderInstance] Failed to create CUDAExecutionProvider. Require cuDNN 9.* and CUDA 12.*. Please install all dependencies as mentioned in the GPU requirements page (https://onnxruntime.ai/docs/execution-providers/CUDA-ExecutionProvider.html#requirements), make sure they're in the PATH, and that your GPU is supported.[m
-2026-06-23T15:02:02.469813945Z [1;31m2026-06-23 15:02:02.469709751 [E:onnxruntime:Default, provider_bridge_ort.cc:1862 TryGetProviderInfo_CUDA] /onnxruntime_src/onnxruntime/core/session/provider_bridge_ort.cc:1539 onnxruntime::Provider& onnxruntime::ProviderLibrary::Get() [ONNXRuntimeError] : 1 : FAIL : Failed to load library libonnxruntime_providers_cuda.so with error: libcudnn_adv.so.9: cannot open shared object file: No such file or directory
-2026-06-23T15:02:02.469844151Z [m
-2026-06-23T15:02:02.469846946Z [0;93m2026-06-23 15:02:02.469726743 [W:onnxruntime:Default, onnxruntime_pybind_state.cc:993 CreateExecutionProviderInstance] Failed to create CUDAExecutionProvider. Require cuDNN 9.* and CUDA 12.*. Please install all dependencies as mentioned in the GPU requirements page (https://onnxruntime.ai/docs/execution-providers/CUDA-ExecutionProvider.html#requirements), make sure they're in the PATH, and that your GPU is supported.[m
-2026-06-23T15:02:02.875234962Z [1;31m2026-06-23 15:02:02.875149703 [E:onnxruntime:Default, provider_bridge_ort.cc:1862 TryGetProviderInfo_CUDA] /onnxruntime_src/onnxruntime/core/session/provider_bridge_ort.cc:1539 onnxruntime::Provider& onnxruntime::ProviderLibrary::Get() [ONNXRuntimeError] : 1 : FAIL : Failed to load library libonnxruntime_providers_cuda.so with error: libcudnn_adv.so.9: cannot open shared object file: No such file or directory
-2026-06-23T15:02:02.875286537Z [m
-2026-06-23T15:02:02.875288932Z [0;93m2026-06-23 15:02:02.875168127 [W:onnxruntime:Default, onnxruntime_pybind_state.cc:993 CreateExecutionProviderInstance] Failed to create CUDAExecutionProvider. Require cuDNN 9.* and CUDA 12.*. Please install all dependencies as mentioned in the GPU requirements page (https://onnxruntime.ai/docs/execution-providers/CUDA-ExecutionProvider.html#requirements), make sure they're in the PATH, and that your GPU is supported.[m
-2026-06-23T15:02:03.422090564Z [1;31m2026-06-23 15:02:03.421998012 [E:onnxruntime:Default, provider_bridge_ort.cc:1862 TryGetProviderInfo_CUDA] /onnxruntime_src/onnxruntime/core/session/provider_bridge_ort.cc:1539 onnxruntime::Provider& onnxruntime::ProviderLibrary::Get() [ONNXRuntimeError] : 1 : FAIL : Failed to load library libonnxruntime_providers_cuda.so with error: libcudnn_adv.so.9: cannot open shared object file: No such file or directory
-2026-06-23T15:02:03.422116563Z [m
-2026-06-23T15:02:03.422119408Z [0;93m2026-06-23 15:02:03.422016036 [W:onnxruntime:Default, onnxruntime_pybind_state.cc:993 CreateExecutionProviderInstance] Failed to create CUDAExecutionProvider. Require cuDNN 9.* and CUDA 12.*. Please install all dependencies as mentioned in the GPU requirements page (https://onnxruntime.ai/docs/execution-providers/CUDA-ExecutionProvider.html#requirements), make sure they're in the PATH, and that your GPU is supported.[m
-2026-06-23T15:02:03.792851841Z [FitDiT] All models loaded successfully.
-2026-06-23T15:02:03.792878511Z --- Starting Serverless Worker |  Version 1.9.1 ---
-2026-06-23T15:02:03.851279921Z {"requestId": null, "message": "Running 7 fitness check(s)...", "level": "INFO"}
-2026-06-23T15:02:04.025080945Z {"requestId": null, "message": "GPU binary test passed: 1 GPU(s) healthy (CUDA 13.0)", "level": "INFO"}
-2026-06-23T15:02:04.046126656Z {"requestId": null, "message": "Memory check passed: 124.76GB available (of 187.82GB total)", "level": "INFO"}
-2026-06-23T15:02:04.046146132Z {"requestId": null, "message": "Disk space check passed: 19.98GB free (99.9% available)", "level": "INFO"}
-2026-06-23T15:02:04.069075453Z {"requestId": null, "message": "Network connectivity passed: Connected to 8.8.8.8 (23ms)", "level": "INFO"}
-2026-06-23T15:02:04.095429248Z {"requestId": null, "message": "CUDA version check passed: 13.0 (minimum: 11.8)", "level": "INFO"}
-2026-06-23T15:02:04.128250722Z {"requestId": null, "message": "CUDA initialization passed: 1 device(s) initialized successfully", "level": "INFO"}
-2026-06-23T15:02:04.190251772Z {"requestId": null, "message": "GPU compute benchmark passed: Matrix multiply completed in 37ms", "level": "INFO"}
-2026-06-23T15:02:04.190263774Z {"requestId": null, "message": "All fitness checks passed. (338.99ms)", "level": "INFO"}
-2026-06-23T15:02:04.854832891Z {"requestId": null, "message": "Jobs in queue: 1", "level": "INFO"}
-2026-06-23T15:02:04.927174778Z {"requestId": null, "message": "Jobs in progress: 1", "level": "INFO"}
-2026-06-23T15:02:04.927293368Z {"requestId": "3e616136-5df0-4fc1-8059-ece18208f4bf-u1", "message": "Started.", "level": "INFO"}
-2026-06-23T15:02:05.237882584Z {"requestId": "3e616136-5df0-4fc1-8059-ece18208f4bf-u1", "message": "Finished.", "level": "INFO"}
+2026-06-23 23:25:20.289 | info | qx7rv37v5ip1sn | /app/handler.py:163: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.\n
+2026-06-23 23:26:02.696 | info | qx7rv37v5ip1sn |   torch.load(os.path.join(WEIGHTS_DIR, "pose_guider", "diffusion_pytorch_model.bin"), map_location="cpu")\n
+2026-06-23 23:26:02.696 | info | qx7rv37v5ip1sn | \rLoading checkpoint shards:   0%|          | 0/2 [00:00<?, ?it/s]\rLoading checkpoint shards:  50%|█████     | 1/2 [00:32<00:32, 32.86s/it]\rLoading checkpoint shards: 100%|██████████| 2/2 [00:33<00:00, 14.12s/it]\rLoading checkpoint shards: 100%|██████████| 2/2 [00:33<00:00, 16.93s/it]\n
+2026-06-23 23:26:03.481 | info | qx7rv37v5ip1sn | \rLoading pipeline components...:   0%|          | 0/6 [00:00<?, ?it/s]\rLoading pipeline components...:  17%|█▋        | 1/6 [00:00<00:01,  3.37it/s]\rLoading pipeline components...: 100%|██████████| 6/6 [00:00<00:00, 18.41it/s]\n
+2026-06-23 23:26:05.428 | info | qx7rv37v5ip1sn | [1;31m2026-06-23 15:26:05.428206609 [E:onnxruntime:Default, provider_bridge_ort.cc:1862 TryGetProviderInfo_CUDA] /onnxruntime_src/onnxruntime/core/session/provider_bridge_ort.cc:1539 onnxruntime::Provider& onnxruntime::ProviderLibrary::Get() [ONNXRuntimeError] : 1 : FAIL : Failed to load library libonnxruntime_providers_cuda.so with error: libcudnn_adv.so.9: cannot open shared object file: No such file or directory\n
+2026-06-23 23:26:05.927 | info | qx7rv37v5ip1sn | [m\n
+2026-06-23 23:26:05.927 | info | qx7rv37v5ip1sn | [0;93m2026-06-23 15:26:05.428242160 [W:onnxruntime:Default, onnxruntime_pybind_state.cc:993 CreateExecutionProviderInstance] Failed to create CUDAExecutionProvider. Require cuDNN 9.* and CUDA 12.*. Please install all dependencies as mentioned in the GPU requirements page (https://onnxruntime.ai/docs/execution-providers/CUDA-ExecutionProvider.html#requirements), make sure they're in the PATH, and that your GPU is supported.[m\n
+2026-06-23 23:26:05.927 | info | qx7rv37v5ip1sn | [1;31m2026-06-23 15:26:05.927221566 [E:onnxruntime:Default, provider_bridge_ort.cc:1862 TryGetProviderInfo_CUDA] /onnxruntime_src/onnxruntime/core/session/provider_bridge_ort.cc:1539 onnxruntime::Provider& onnxruntime::ProviderLibrary::Get() [ONNXRuntimeError] : 1 : FAIL : Failed to load library libonnxruntime_providers_cuda.so with error: libcudnn_adv.so.9: cannot open shared object file: No such file or directory\n
+2026-06-23 23:26:06.575 | info | qx7rv37v5ip1sn | [m\n
+2026-06-23 23:26:06.575 | info | qx7rv37v5ip1sn | [0;93m2026-06-23 15:26:05.927250817 [W:onnxruntime:Default, onnxruntime_pybind_state.cc:993 CreateExecutionProviderInstance] Failed to create CUDAExecutionProvider. Require cuDNN 9.* and CUDA 12.*. Please install all dependencies as mentioned in the GPU requirements page (https://onnxruntime.ai/docs/execution-providers/CUDA-ExecutionProvider.html#requirements), make sure they're in the PATH, and that your GPU is supported.[m\n
+2026-06-23 23:26:06.575 | info | qx7rv37v5ip1sn | [1;31m2026-06-23 15:26:06.574665107 [E:onnxruntime:Default, provider_bridge_ort.cc:1862 TryGetProviderInfo_CUDA] /onnxruntime_src/onnxruntime/core/session/provider_bridge_ort.cc:1539 onnxruntime::Provider& onnxruntime::ProviderLibrary::Get() [ONNXRuntimeError] : 1 : FAIL : Failed to load library libonnxruntime_providers_cuda.so with error: libcudnn_adv.so.9: cannot open shared object file: No such file or directory\n
+2026-06-23 23:26:07.588 | info | qx7rv37v5ip1sn | [m\n
+2026-06-23 23:26:07.588 | info | qx7rv37v5ip1sn | [0;93m2026-06-23 15:26:06.574689238 [W:onnxruntime:Default, onnxruntime_pybind_state.cc:993 CreateExecutionProviderInstance] Failed to create CUDAExecutionProvider. Require cuDNN 9.* and CUDA 12.*. Please install all dependencies as mentioned in the GPU requirements page (https://onnxruntime.ai/docs/execution-providers/CUDA-ExecutionProvider.html#requirements), make sure they're in the PATH, and that your GPU is supported.[m\n
+2026-06-23 23:26:07.588 | info | qx7rv37v5ip1sn | [1;31m2026-06-23 15:26:07.587865154 [E:onnxruntime:Default, provider_bridge_ort.cc:1862 TryGetProviderInfo_CUDA] /onnxruntime_src/onnxruntime/core/session/provider_bridge_ort.cc:1539 onnxruntime::Provider& onnxruntime::ProviderLibrary::Get() [ONNXRuntimeError] : 1 : FAIL : Failed to load library libonnxruntime_providers_cuda.so with error: libcudnn_adv.so.9: cannot open shared object file: No such file or directory\n
+2026-06-23 23:26:08.042 | info | qx7rv37v5ip1sn | [m\n
+2026-06-23 23:26:08.042 | info | qx7rv37v5ip1sn | [0;93m2026-06-23 15:26:07.587892395 [W:onnxruntime:Default, onnxruntime_pybind_state.cc:993 CreateExecutionProviderInstance] Failed to create CUDAExecutionProvider. Require cuDNN 9.* and CUDA 12.*. Please install all dependencies as mentioned in the GPU requirements page (https://onnxruntime.ai/docs/execution-providers/CUDA-ExecutionProvider.html#requirements), make sure they're in the PATH, and that your GPU is supported.[m\n
+2026-06-23 23:26:08.042 | info | qx7rv37v5ip1sn | [FitDiT] All models loaded successfully.\n
+2026-06-23 23:26:08.301 | info | qx7rv37v5ip1sn | --- Starting Serverless Worker |  Version 1.9.1 ---\n
+2026-06-23 23:26:08.302 | info | qx7rv37v5ip1sn | Running 7 fitness check(s)...
+2026-06-23 23:26:08.464 | info | qx7rv37v5ip1sn | GPU binary test passed: 1 GPU(s) healthy (CUDA 12.4)
+2026-06-23 23:26:08.661 | info | qx7rv37v5ip1sn | Memory check passed: 204.45GB available (of 251.55GB total)
+2026-06-23 23:26:08.661 | info | qx7rv37v5ip1sn | Disk space check passed: 19.98GB free (99.9% available)
+2026-06-23 23:26:08.661 | info | qx7rv37v5ip1sn | Network connectivity passed: Connected to 8.8.8.8 (27ms)
+2026-06-23 23:26:08.662 | info | qx7rv37v5ip1sn | CUDA version check passed: 12.4 (minimum: 11.8)
+2026-06-23 23:26:08.815 | info | qx7rv37v5ip1sn | CUDA initialization passed: 1 device(s) initialized successfully
+2026-06-23 23:26:09.028 | info | qx7rv37v5ip1sn | GPU compute benchmark passed: Matrix multiply completed in 73ms
+2026-06-23 23:26:09.800 | info | qx7rv37v5ip1sn | All fitness checks passed. (726.15ms)
+2026-06-23 23:26:09.800 | info | qx7rv37v5ip1sn | Jobs in queue: 1
+2026-06-23 23:26:10.151 | info | qx7rv37v5ip1sn | Jobs in progress: 1
+2026-06-23 23:26:10.151 | info | qx7rv37v5ip1sn | Started.
+2026-06-23 23:26:10.151 | info | qx7rv37v5ip1sn | Traceback (most recent call last):\n
+2026-06-23 23:26:10.151 | info | qx7rv37v5ip1sn |   File "/app/handler.py", line 280, in handler\n
+2026-06-23 23:26:10.151 | info | qx7rv37v5ip1sn |     person_img = decode_base64_image(model_b64)\n
+2026-06-23 23:26:10.151 | info | qx7rv37v5ip1sn |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n
+2026-06-23 23:26:10.151 | info | qx7rv37v5ip1sn |   File "/app/handler.py", line 53, in decode_base64_image\n
+2026-06-23 23:26:10.151 | info | qx7rv37v5ip1sn |     return Image.open(BytesIO(base64.b64decode(b64_str))).convert("RGB")\n
+2026-06-23 23:26:10.151 | info | qx7rv37v5ip1sn |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n
+2026-06-23 23:26:10.151 | info | qx7rv37v5ip1sn |   File "/opt/conda/lib/python3.11/site-packages/PIL/Image.py", line 3498, in open\n
+2026-06-23 23:26:10.151 | info | qx7rv37v5ip1sn |     raise UnidentifiedImageError(msg)\n
+2026-06-23 23:26:10.151 | info | qx7rv37v5ip1sn | PIL.UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x7e4edf993330>\n
+2026-06-23 23:26:10.151 | info | qx7rv37v5ip1sn | Finished.
