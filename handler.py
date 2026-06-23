@@ -165,11 +165,16 @@ def load_models():
     pose_guider.to(device=DEVICE, dtype=weight_dtype)
 
     # 6. 加载视觉特征提取模型
+    clip_large_path = os.path.join(WEIGHTS_DIR, "clip-vit-large-patch14")
+    clip_bigG_path = os.path.join(WEIGHTS_DIR, "clip-vit-bigG-14")
+
     image_encoder_large = CLIPVisionModelWithProjection.from_pretrained(
-        "openai/clip-vit-large-patch14", torch_dtype=weight_dtype
+        # "openai/clip-vit-large-patch14", torch_dtype=weight_dtype
+        clip_large_path, torch_dtype=weight_dtype
     )
     image_encoder_bigG = CLIPVisionModelWithProjection.from_pretrained(
-        "laion/CLIP-ViT-bigG-14-laion2B-39B-b16k", torch_dtype=weight_dtype
+        # "laion/CLIP-ViT-bigG-14-laion2B-39B-b160k", torch_dtype=weight_dtype
+        clip_bigG_path, torch_dtype=weight_dtype
     )
     image_encoder_large.to(DEVICE)
     image_encoder_bigG.to(DEVICE)
