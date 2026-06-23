@@ -13,3 +13,4 @@ scikit-image>=0.21.0
 sentencepiece
 protobuf
 peft>=0.11.0
+matplotlib
