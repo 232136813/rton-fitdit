@@ -17,7 +17,7 @@ WORKDIR /app
 RUN pip install --no-cache-dir \
     "runpod>=1.6.0" \
     "diffusers==0.31.0" \
-    "transformers==4.39.3" \
+    "transformers==4.44.0" \
     "accelerate>=0.31.0" \
     "safetensors>=0.4.0" \
     "huggingface_hub>=0.23.0" \
