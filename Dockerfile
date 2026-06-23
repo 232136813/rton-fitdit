@@ -25,12 +25,16 @@ RUN pip install --no-cache-dir \
     "opencv-python-headless>=4.8.0" \
     "Pillow>=10.3.0" \
     "onnxruntime-gpu==1.20.1" \
+    "nvidia-cudnn-cu12" \
     "scipy" \
     "scikit-image>=0.21.0" \
     "sentencepiece" \
     "protobuf" \
     "peft>=0.11.0" \
     "matplotlib"
+
+
+RUN CUDNN_PATH=$(python -c "import nvidia.cudnn; print(nvidia.cudnn.__path__[0])") && echo "$CUDNN_PATH/lib" > /etc/ld.so.conf.d/cudnn.conf && ldconfig
 
 # Copy application code
 COPY handler.py /app/handler.py
