@@ -142,7 +142,7 @@ def load_models():
     from src.transformer_sd3_garm import SD3Transformer2DModel as SD3Transformer2DModel_Garm
     from src.transformer_sd3_vton import SD3Transformer2DModel as SD3Transformer2DModel_Vton
     from src.pose_guider import PoseGuider
-    from preprocess.dwpose import DwposeDetector
+    from preprocess.dwpose import DWposeDetector
     from preprocess.humanparsing.run_parsing import Parsing
 
     # 4. 加载试衣网络分支
@@ -194,7 +194,7 @@ def load_models():
         preprocess_device = DEVICE
 
     # 8. 初始化前置姿态与分割检测模型
-    dwprocessor = DwposeDetector(model_root=WEIGHTS_DIR, device=preprocess_device)
+    dwprocessor = DWposeDetector(model_root=WEIGHTS_DIR, device=preprocess_device)
     parsing_model = Parsing(model_root=WEIGHTS_DIR, device=preprocess_device)
 
     print("[FitDiT] All models loaded successfully.")
