@@ -273,11 +273,11 @@ def handler(job):
             return {
                 "error": f"Unknown category '{raw_category}'. Use: upper_body, lower_body, dresses, tops, bottoms, one-pieces."}
 
-        steps = int(inp.get("steps", 20))
+        steps = int(inp.get("steps", 40))
         guidance_scale = float(inp.get("guidance_scale", 2.0))
         seed = int(inp.get("seed", -1))
         num_images = min(max(int(inp.get("num_images", 1)), 1), 4)
-        resolution = inp.get("resolution", "768x1024")
+        resolution = inp.get("resolution", "1152x1536")
 
         if resolution not in ["768x1024", "1152x1536", "1536x2048"]:
             return {"error": f"Invalid resolution '{resolution}'. Use: 768x1024, 1152x1536, 1536x2048."}
