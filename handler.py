@@ -46,11 +46,11 @@ for p in [fitdit_root, src_dir]:
 # ==============================================================================
 # 2. 图像处理工具函数
 # ==============================================================================
-def decode_base64_image(b64_str: str) -> Image.Image:
-    """将前端传来的 Base64 字符串（含或不含 data-URI 前缀）解码为 PIL Image"""
-    if "," in b64_str:
-        b64_str = b64_str.split(",", 1)[1]
-    return Image.open(BytesIO(base64.b64decode(b64_str))).convert("RGB")
+# def decode_base64_image(b64_str: str) -> Image.Image:
+#     """将前端传来的 Base64 字符串（含或不含 data-URI 前缀）解码为 PIL Image"""
+#     if "," in b64_str:
+#         b64_str = b64_str.split(",", 1)[1]
+#     return Image.open(BytesIO(base64.b64decode(b64_str))).convert("RGB")
 
 def decode_image(image_str: str) -> Image.Image:
     if image_str.startswith("http://") or image_str.startswith("https://"):
