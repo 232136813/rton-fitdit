@@ -1,56 +1,22 @@
-2026-06-22T18:24:14.369522899Z [FitDiT] Loading models from /runpod-volume/FitDiT on cuda ...
-2026-06-22T18:24:15.648329933Z Traceback (most recent call last):
-2026-06-22T18:24:15.648436571Z   File "/opt/conda/lib/python3.11/site-packages/diffusers/utils/import_utils.py", line 853, in _get_module
-2026-06-22T18:24:15.648456621Z     return importlib.import_module("." + module_name, self.__name__)
-2026-06-22T18:24:15.648459371Z            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2026-06-22T18:24:15.648461391Z   File "/opt/conda/lib/python3.11/importlib/__init__.py", line 126, in import_module
-2026-06-22T18:24:15.648463781Z     return _bootstrap._gcd_import(name[level:], package, level)
-2026-06-22T18:24:15.648465821Z            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2026-06-22T18:24:15.648467681Z   File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
-2026-06-22T18:24:15.648469521Z   File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
-2026-06-22T18:24:15.648471451Z   File "<frozen importlib._bootstrap>", line 1147, in _find_and_load_unlocked
-2026-06-22T18:24:15.648473281Z   File "<frozen importlib._bootstrap>", line 690, in _load_unlocked
-2026-06-22T18:24:15.648475101Z   File "<frozen importlib._bootstrap_external>", line 940, in exec_module
-2026-06-22T18:24:15.648476891Z   File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
-2026-06-22T18:24:15.648478711Z   File "/opt/conda/lib/python3.11/site-packages/diffusers/loaders/lora_pipeline.py", line 36, in <module>
-2026-06-22T18:24:15.648480561Z     from .lora_base import LoraBaseMixin
-2026-06-22T18:24:15.648482790Z   File "/opt/conda/lib/python3.11/site-packages/diffusers/loaders/lora_base.py", line 47, in <module>
-2026-06-22T18:24:15.648484630Z     from peft.tuners.tuners_utils import BaseTunerLayer
-2026-06-22T18:24:15.648486501Z   File "/opt/conda/lib/python3.11/site-packages/peft/__init__.py", line 17, in <module>
-2026-06-22T18:24:15.648488341Z     from .auto import (
-2026-06-22T18:24:15.648490650Z   File "/opt/conda/lib/python3.11/site-packages/peft/auto.py", line 32, in <module>
-2026-06-22T18:24:15.648492540Z     from .peft_model import (
-2026-06-22T18:24:15.648495100Z   File "/opt/conda/lib/python3.11/site-packages/peft/peft_model.py", line 38, in <module>
-2026-06-22T18:24:15.648496960Z     from transformers import Cache, DynamicCache, EncoderDecoderCache, PreTrainedModel
-2026-06-22T18:24:15.648498900Z ImportError: cannot import name 'EncoderDecoderCache' from 'transformers' (/opt/conda/lib/python3.11/site-packages/transformers/__init__.py)
-2026-06-22T18:24:15.648505860Z The above exception was the direct cause of the following exception:
-2026-06-22T18:24:15.648509850Z Traceback (most recent call last):
-2026-06-22T18:24:15.648549409Z   File "/app/handler.py", line 339, in <module>
-2026-06-22T18:24:15.648566389Z     load_models()
-2026-06-22T18:24:15.648572219Z   File "/app/handler.py", line 141, in load_models
-2026-06-22T18:24:15.648577689Z     from src.pipeline_stable_diffusion_3_tryon import StableDiffusion3TryOnPipeline
-2026-06-22T18:24:15.648575599Z [FitDiT] FATAL: Failed to load models. Container will accept jobs but return errors.
-2026-06-22T18:24:15.648583149Z   File "/runpod-volume/FitDiT/src/pipeline_stable_diffusion_3_tryon.py", line 27, in <module>
-2026-06-22T18:24:15.648600209Z     from diffusers.loaders import FromSingleFileMixin, SD3LoraLoaderMixin
-2026-06-22T18:24:15.648605679Z   File "<frozen importlib._bootstrap>", line 1229, in _handle_fromlist
-2026-06-22T18:24:15.648610459Z   File "/opt/conda/lib/python3.11/site-packages/diffusers/utils/import_utils.py", line 843, in __getattr__
-2026-06-22T18:24:15.648615499Z     module = self._get_module(self._class_to_module[name])
-2026-06-22T18:24:15.648620218Z              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2026-06-22T18:24:15.648624768Z   File "/opt/conda/lib/python3.11/site-packages/diffusers/utils/import_utils.py", line 855, in _get_module
-2026-06-22T18:24:15.648630058Z     raise RuntimeError(
-2026-06-22T18:24:15.648635208Z RuntimeError: Failed to import diffusers.loaders.lora_pipeline because of the following error (look up to see its traceback):
-2026-06-22T18:24:15.648666598Z cannot import name 'EncoderDecoderCache' from 'transformers' (/opt/conda/lib/python3.11/site-packages/transformers/__init__.py)
-2026-06-22T18:24:15.648747826Z --- Starting Serverless Worker |  Version 1.9.1 ---
-2026-06-22T18:24:15.900509311Z {"requestId": null, "message": "Running 7 fitness check(s)...", "level": "INFO"}
-2026-06-22T18:24:16.115409279Z {"requestId": null, "message": "GPU binary test passed: 1 GPU(s) healthy (CUDA 12.7)", "level": "INFO"}
-2026-06-22T18:24:16.121495970Z {"requestId": null, "message": "Memory check passed: 350.48GB available (of 377.46GB total)", "level": "INFO"}
-2026-06-22T18:24:16.121520510Z {"requestId": null, "message": "Disk space check passed: 19.98GB free (99.9% available)", "level": "INFO"}
-2026-06-22T18:24:16.157996524Z {"requestId": null, "message": "Network connectivity passed: Connected to 8.8.8.8 (36ms)", "level": "INFO"}
-2026-06-22T18:24:16.280868360Z {"requestId": null, "message": "CUDA version check passed: 12.7 (minimum: 11.8)", "level": "INFO"}
-2026-06-22T18:24:16.581206325Z {"requestId": null, "message": "CUDA initialization passed: 1 device(s) initialized successfully", "level": "INFO"}
-2026-06-22T18:24:16.759042837Z {"requestId": null, "message": "GPU compute benchmark passed: Matrix multiply completed in 58ms", "level": "INFO"}
-2026-06-22T18:24:16.759066637Z {"requestId": null, "message": "All fitness checks passed. (858.58ms)", "level": "INFO"}
-2026-06-22T18:24:17.278610400Z {"requestId": null, "message": "Jobs in queue: 1", "level": "INFO"}
-2026-06-22T18:24:17.281889957Z {"requestId": null, "message": "Jobs in progress: 1", "level": "INFO"}
-2026-06-22T18:24:17.282151483Z {"requestId": "cad644d6-8e27-48b9-be04-77451a4769c1-u2", "message": "Started.", "level": "INFO"}
-2026-06-22T18:24:17.601238456Z {"requestId": "cad644d6-8e27-48b9-be04-77451a4769c1-u2", "message": "Finished.", "level": "INFO"}
+
+Traceback (most recent call last):
+  File "/app/handler.py", line 339, in <module>
+    load_models()
+  File "/app/handler.py", line 145, in load_models
+    from preprocess.dwpose import DwposeDetector
+ImportError: cannot import name 'DwposeDetector' from 'preprocess.dwpose' (/runpod-volume/FitDiT/preprocess/dwpose/__init__.py)
+[FitDiT] FATAL: Failed to load models. Container will accept jobs but return errors.
+--- Starting Serverless Worker |  Version 1.9.1 ---
+{"requestId": null, "message": "Running 7 fitness check(s)...", "level": "INFO"}
+{"requestId": null, "message": "GPU binary test passed: 1 GPU(s) healthy (CUDA 13.0)", "level": "INFO"}
+{"requestId": null, "message": "Memory check passed: 165.92GB available (of 187.82GB total)", "level": "INFO"}
+{"requestId": null, "message": "Disk space check passed: 19.98GB free (99.9% available)", "level": "INFO"}
+{"requestId": null, "message": "Network connectivity passed: Connected to 8.8.8.8 (22ms)", "level": "INFO"}
+{"requestId": null, "message": "CUDA version check passed: 13.0 (minimum: 11.8)", "level": "INFO"}
+{"requestId": null, "message": "CUDA initialization passed: 1 device(s) initialized successfully", "level": "INFO"}
+{"requestId": null, "message": "GPU compute benchmark passed: Matrix multiply completed in 97ms", "level": "INFO"}
+{"requestId": null, "message": "All fitness checks passed. (734.82ms)", "level": "INFO"}
+{"requestId": null, "message": "Jobs in queue: 1", "level": "INFO"}
+{"requestId": null, "message": "Jobs in progress: 1", "level": "INFO"}
+{"requestId": "c9babd5a-1034-48c3-bacd-744e329349ea-u2", "message": "Started.", "level": "INFO"}
+{"requestId": "c9babd5a-1034-48c3-bacd-744e329349ea-u2", "message": "Finished.", "level": "INFO"}
