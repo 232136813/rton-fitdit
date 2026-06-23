@@ -18,7 +18,7 @@ import runpod
 # ==============================================================================
 WEIGHTS_DIR = os.environ.get("FITDIT_WEIGHTS_DIR", "/runpod-volume/FitDiT")
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-USE_FP16 = os.environ.get("FITDIT_FP16", "1") == "1"
+USE_FP16 = os.environ.get("FITDIT_FP16", "0") == "1"
 CPU_OFFLOAD = os.environ.get("FITDIT_CPU_OFFLOAD", "0") == "1"
 
 # 用户友好标签到模型内部品类的映射
