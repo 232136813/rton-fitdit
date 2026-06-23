@@ -29,7 +29,8 @@ RUN pip install --no-cache-dir \
     "scikit-image>=0.21.0" \
     "sentencepiece" \
     "protobuf" \
-    "peft>=0.11.0"
+    "peft>=0.11.0" \
+    "matplotlib"
 
 # Copy application code
 COPY handler.py /app/handler.py
@@ -37,5 +38,6 @@ COPY download_weights.py /app/download_weights.py
 
 # Network volume mount point for model weights
 RUN mkdir -p /runpod-volume
+
 
 CMD ["python", "-u", "/app/handler.py"]
