@@ -52,6 +52,14 @@ def decode_base64_image(b64_str: str) -> Image.Image:
         b64_str = b64_str.split(",", 1)[1]
     return Image.open(BytesIO(base64.b64decode(b64_str))).convert("RGB")
 
+def decode_image(image_str: str) -> Image.Image:
+    if image_str.startswith("http://") or image_str.startswith("https://"):
+        import urllib.request
+        with urllib.request.urlopen(image_str) as response:
+            return Image.open(BytesIO(response.read())).convert("RGB")
+    if "," in image_str:
+        image_str = image_str.split(",", 1)[1]
+    return Image.open(BytesIO(base64.b64decode(image_str))).convert("RGB")
 
 def encode_image_to_base64(image: Image.Image, fmt: str = "JPEG", quality: int = 95) -> str:
     """将 PIL Image 编码为带 data-URI 前缀的 Base64 字符串"""
@@ -277,15 +285,15 @@ def handler(job):
         new_width, new_height = map(int, resolution.split("x"))
 
         # 3. 解码输入的 Base64 图像
-        person_img = decode_base64_image(model_b64)
-        garment_img = decode_base64_image(garment_b64)
+        person_img = decode_image(model_b64)
+        garment_img = decode_image(garment_b64)
         original_size = person_img.size  # 保存用户的原始尺寸 (W, H)
 
         # 4. 获取控制遮罩与姿态图
         mask_b64 = inp.get("mask_image")
         if mask_b64:
             # 如果用户自己上传了高级遮罩，直接解码使用
-            mask = decode_base64_image(mask_b64).convert("L")
+            mask = decode_image(mask_b64).convert("L")
             det_img = resize_for_detection(person_img)
             pose_img_bgr, _, _, _ = dwprocessor(np.array(det_img)[:, :, ::-1])
             pose_image = Image.fromarray(pose_img_bgr[:, :, ::-1]).resize(person_img.size)
